@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# Library to convert entries into bibtex entries
+# Library to convert CSL-type entries into bibtex entries
 
 TYPES = {
     "journal article": "article",

@@ -88,7 +88,7 @@ class Papers(object):
         """Returns summary information for each paper matched to papers.
 
         The returned object is a `dict` keyed on the citekey for each paper,
-        the values are dicts with the following minimal paper info:
+        where field names are taken from the CSL terminology.
 
           - title   : The title of the publicatio
           - authors : Firstname Lastname, First Last, and First Last
