@@ -109,11 +109,11 @@ class Sente(object):
                     if not row2["value"] is "":
                         row["_%s" % row2["name"]] = row2["value"]
                 
-                for k,v in row.iteritems(): print "[%s] %s" % (k,v)
+                for k,v in row.items(): print("[%s] %s" % (k,v))
                 
                 entry = {}
-                for field_src, field_dest in field_mapping.iteritems():
-                    if row.has_key(field_src) and row[field_src] not in (None, ""): 
+                for field_src, field_dest in field_mapping.items():
+                    if field_src in row and row[field_src] not in (None, ""): 
                         entry[field_dest] = row[field_src]
                         
                 # Retrieve authors
@@ -122,7 +122,7 @@ class Sente(object):
                     role=row2["Role"]
                     destRole = role_mapping.get(role, None)
                     if destRole is not None:
-                        if not entry.has_key(destRole): entry[destRole] = []
+                        if destRole not in entry: entry[destRole] = []
                         entry[destRole].append([row2["LastName"], row2["ForeNames"]])
                     else: 
                         raise Exception("Unknown role [%s]" % role)
@@ -136,7 +136,7 @@ class Sente(object):
 # --- Command [get] ---
 def command_get(app, options):
     entries = app.query_papers_by_citekey([options.citekey])
-    for entry in entries.values(): bibtex.to_bibtex(entry)
+    for entry in list(entries.values()): bibtex.to_bibtex(entry)
     
 # --- Main part ----
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     try: 
         options.func(app, options)
     except Exception as e:
-        print "Error while running command %s:" % options.command
+        print("Error while running command %s:" % options.command)
         raise
     
 
