@@ -2,6 +2,8 @@
 # Common classes for bibliography managers
 #
 
+import logging
+
 """All the types that can be taken by a paper"""
 types = set(["article", "article-journal", "article-magazine", "article-newspaper",
     "bill", "book", "broadcast", "chapter", "dataset", "entry", "entry-dictionary",
@@ -11,13 +13,48 @@ types = set(["article", "article-journal", "article-magazine", "article-newspape
     "thesis", "treaty", "webpage"])
 
 
-class Paper(object):
+class Object:
+    def __init__(self, uuid, surrogate=True):
+        self.local_uuid = uuid
+        self.surrogate = surrogate
+
+    def setdbvalues(self, cursor, row, include=None, exclude=None, transform={}):
+        """Used to extract results from a sqlite3 row by name"""
+        for idx, col in enumerate(cursor.description):
+            name = col[0]
+            if (exclude is None or name not in exclude) and (include is None or name not in include):
+                dest = transform.get(name, name)
+                setattr(self, dest, row[name])
+
+    def __getattr__(self, name):
+        # Retrieve the surrogate if need be
+        if self.surrogate:
+            logging.debug("Retrieving surrogate %s [access to %s]\n" % (self.uuid, name))
+            self.surrogate = False
+            return getattr(self, name)
+
+        raise AttributeError("No attribute %s in %s" % (name, type(self)))
+
+    def _retrieve(self):
+        raise Exception("Lazy loading not implemented for %s" % type(self))
+
+    @property
+    def uuid(self):
+        return "%s:%s" % (self.urn(), self.local_uuid)
+
+    @classmethod
+    def urn(cls):
+        return None
+
+
+class Paper(Object):
     """A paper"""
-    def __init__(self, uuid, type):
-        self.uuid = uuid
-        self.type = type
+    def __init__(self, uuid, surrogate=True):
+        super().__init__(uuid, surrogate)
+        self.local_uuid = uuid
         self.authors = []
         self.keywords = set()
+        self.container = None
 
     def __setattr__(self, name, value):
         if name == "type" and value is not None:
@@ -35,34 +72,46 @@ class Paper(object):
         return s.strip()
 
 
-class File(object):
+class Annotation(Object):
+    """An annotation on a file"""
+    def __init__(self, file, uuid, surrogate=True):
+        super().__init__(uuid, surrogate)
+        self.file = file
+
+
+
+
+class File(Object):
     """A file (PDF, etc) associated to a document"""
-    pass
+    def __init__(self, uuid, surrogate=True):
+        super().__init__(uuid, surrogate)
+        self.title = None
 
 
-class Author(object):
+
+class Author(Object):
     """The author of a paper"""
-    def __init__(self, uuid, firstname, surname):
-        self.uuid = uuid
+    def __init__(self, uuid, firstname=None, surname=None, surrogate=True):
+        super().__init__(uuid, surrogate)
         self.firstname = firstname
         self.surname = surname
 
 
-class Keyword(object):
+class Keyword(Object):
     """A keyword"""
     def __init__(self, uuid, name):
         self.parent = None
-        self.uuid = uuid
+        self.local_uuid = uuid
         self.name = name
 
 
-class Collection(object):
+class Collection(Object):
     """A collection of publications"""
     def __init__(self, uuid, name):
         self.parent = None
         self.children = []
         self.publications = []
-        self.uuid = uuid
+        self.local_uuid = uuid
         self.name = name
 
     def __str__(self):
@@ -71,6 +120,6 @@ class Collection(object):
         return "%s -> %s" % (self.name, self.parent.uuid)
 
 
-class Manager(object):
+class Manager(Object):
     """A bibliographic manager"""
     pass

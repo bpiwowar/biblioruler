@@ -23,25 +23,28 @@ types = set(["article", "article-journal", "article-magazine", "article-newspape
     "thesis", "treaty", "webpage"])
 
 
-def output_paper(self, f, indent=0):
+def output_paper(f, paper, indent=0):
     _indent = "  " * indent
-    gtype = bibtype.get(self.type, "Article")
+    gtype = bibtype.get(paper.type, "Article")
 
-    write(f, indent, '<bib:{} rdf:about="#{}">\n', gtype, self.uuid)
+    write(f, indent, '<bib:{} rdf:about="#{}">\n', gtype, paper.uuid)
 
-    if len(self.authors) > 0:
+    if len(paper.authors) > 0:
         write(f, indent+1, u"<bib:authors><rdf:Seq>\n")
-        for author in self.authors:
+        for author in paper.authors:
             write(f, indent+2, "<rdf:li>\n")
             output_author(author, f, indent + 3)
             write(f, indent+2, "</rdf:li>\n")
         write(f, indent+1, u"""</rdf:Seq></bib:authors>\n""")
 
-    f.write(u"""%s  <z:itemType>%s</z:itemType>\n""" % (_indent, self.type))
-    write(f, indent+1, """<dc:title>{}</dc:title>\n""", escape(self.title))
-    write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", escape(self.abstract), condition=self.abstract)
+    f.write(u"""%s  <z:itemType>%s</z:itemType>\n""" % (_indent, paper.type))
+    write(f, indent+1, """<dc:title>{}</dc:title>\n""", escape(paper.title))
+    write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", escape(paper.abstract), condition=paper.abstract)
 
-    f.write(u"""%s  <dc:date>%s</dc:date>\n""" % (_indent, self.date()))
+    if paper.container is not None:
+        write(f, indent+1, """<dcterms:isPartOf rdf:resource="{}"/>\n""", paper.container.uuid)
+
+    f.write(u"""%s  <dc:date>%s</dc:date>\n""" % (_indent, paper.date()))
     f.write(u"""%s</bib:%s>\n\n""" % (_indent, gtype))
 
 def output_author(self, f, indent=0):
@@ -51,14 +54,14 @@ def output_author(self, f, indent=0):
     write(f, indent+1, "<foaf:givenname>{}</foaf:givenname>\n", self.firstname)
     write(f, indent, "</foaf:Person>\n")
 
-def output_file(self, f):
-    write(f, indent, """<z:Attachment rdf:about="#{}">""", paper)
-    write(f, indent+1, """<z:itemType>attachment</z:itemType>""")
-    write(f, indent+1, """<rdf:resource rdf:resource="{}"/>""", path)
-    write(f, indent+1, """<dc:subject>{}</dc:subject>""", subject)
-    write(f, indent+1, """<dc:title>{}</dc:title>""", title)
-    write(f, indent+1, """<link:type>{}</link:type>""", mimetype)
-    write(f, indent, """</z:Attachment>""")
+def output_file(out, f, indent=0):
+    write(out, indent, """<z:Attachment rdf:about="#{}">\n""", f.paper.uuid)
+    write(out, indent+1, """<z:itemType>attachment</z:itemType>\n""")
+    write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", f.path)
+    # write(out, indent+1, """<dc:subject>{}</dc:subject>\n""", subject)
+    write(out, indent+1, """<dc:title>{}</dc:title>\n""", f.title)
+    write(out, indent+1, """<link:type>{}</link:type>\n""", f.mimetype)
+    write(out, indent, """</z:Attachment>\n""")
 
 def output_collection(self, f, indent=0):
     _indent = "  " * indent
@@ -89,7 +92,9 @@ class Exporter:
          xmlns:prism="http://prismstandard.org/namespaces/1.2/basic/">\n\n""")
 
             for p in publications:
-                output_paper(p, out, indent=1)
+                output_paper(out, p, indent=1)
+                for f in p.files():
+                    output_file(out, f, indent=2)
 
             for c in collections:
                 output_collection(c, out, indent=1)

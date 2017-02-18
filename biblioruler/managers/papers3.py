@@ -4,6 +4,7 @@
 import sys
 import sqlite3
 import argparse
+import os.path as op
 import os
 import json
 import datetime
@@ -13,8 +14,8 @@ import platform
 import biblioruler.managers.base as managers
 
 
-ANNOTATION_QUERY = """SELECT * FROM Annotation WHERE object_id = "{}" """
-PDF_QUERY = """SELECT uuid, is_primary, path, md5 FROM PDF WHERE object_id = "{}" """
+ANNOTATION_QUERY = """SELECT uuid, contents, type, text, created_at, left, height, rectangles FROM Annotation WHERE object_id = "{}" """
+PDF_QUERY = """SELECT uuid as local_uuid, is_primary, mime_type as mimetype, path, md5 FROM PDF WHERE object_id = "{}" """
 
 
 DEFAULTS = None
@@ -32,69 +33,10 @@ def defaults():
             plist = plistlib.load(fh)
             DEFAULTS["dbpath"] = os.path.expanduser("~/Library/Application Support/") + \
                 plist["mt_papers3_library_location_local"] + "/Library.papers3/Database.papersdb"
+            DEFAULTS["filebase"] = plist["mt_papers3_full_library_location_shared"]
             logging.info("Papers3 database path: " + DEFAULTS["dbpath"])
 
     return DEFAULTS
-
-
-# --- Get default db path (on MAC)
-
-# Interface to papers
-
-class Paper(managers.Paper):
-    @staticmethod
-    def surrogate(papers3, uuid):
-        p = Paper(uuid, None)
-        p.papers3 = papers3
-        return p
-
-    def __getattribute__(self, name):
-        # Surrogate
-        if name != "uuid" and managers.Paper.__getattribute__(self, "type") is None:
-            logging.info("RETRIEVING PAPER FOR %s\n" % name)
-            p = self.papers3.get_publication_by_uuid(uuid)
-            self.__dict__ = p.__dict__.copy()
-        return managers.Paper.__getattribute__(self, name)
-
-    def annotations(self):
-        c = self.papers3.dbconn.cursor()
-        c2 = self.papers3.dbconn.cursor()
-        try:
-            c.execute(PDF_QUERY.format(self.uuid))
-            for row in c:
-                print(row)
-
-                c2.execute(ANNOTATION_QUERY.format(row["uuid"]))
-                for row2 in c2:
-                    print(row2)
-                # self.publications.append(Paper.surrogate(self.papers3, row["object_id"]))
-        finally:
-            c.close()
-            c2.close()
-
-class Author(managers.Author):
-    def __init__(self, uuid, firstname, surname):
-        managers.Author.__init__(self, uuid, firstname, surname)
-
-class Collection(managers.Collection):
-    def __init__(self, papers3, *args):
-        self.papers3 = papers3
-        managers.Collection.__init__(self, *args)
-        del(self.publications)
-
-    def __getattr__(self, name):
-        if name == "publications":
-            c = self.papers3.dbconn.cursor()
-            try:
-                self.publications = []
-                c.execute("""SELECT object_id FROM CollectionItem WHERE collection="{}" """.format(self.uuid))
-                for row in c:
-                    self.publications.append(Paper.surrogate(self.papers3, row["object_id"]))
-            finally:
-                c.close()
-            return self.publications
-
-        return managers.Collection.__getattribute__(self, name)
 
 def dict_factory(cursor, row):
     """Used to extract results from a sqlite3 row by name"""
@@ -104,9 +46,72 @@ def dict_factory(cursor, row):
     return d
 
 
-class Papers3(managers.Manager):
-    """Interface to Papers3.app"""
 
+
+_xlate_month = {
+    '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+    '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+    '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
+}
+def parse_date(pub_date, translate_month=True, month=(6, 7), year=(2, 5)):
+    """99200406011200000000222000 == Jun 2004
+    returns (month, year) as strings
+    """
+    try:
+        cmonth = pub_date[month[0]:month[1] + 1]
+        if translate_month:
+            cmonth = Papers3._xlate_month[cmonth]
+    except:
+        cmonth = ''
+    try:
+        cyear = pub_date[year[0]:year[1] + 1]
+    except:
+        cyear = ''
+
+    return {'month': cmonth, 'year': cyear}
+
+
+# Interface to papers
+
+class Annotation(managers.Annotation):
+    def __init__(self, file, uuid):
+        super().__init__(file, uuid)
+
+
+class File(managers.File):
+    def __init__(self, paper, uuid):
+        super().__init__(uuid)
+        self.paper = paper
+
+    def populate(self, cursor, row):
+        """
+        :param cursor: the db cursor
+        :param row: an associative array containing everything
+        """
+        self.setdbvalues(cursor, row)
+        self.path = op.join(self.paper.papers3.filebase, self.path) if self.path is not None else None
+        self.surrogate = False
+
+        if self.mimetype == "application/vnd.mekentosj.papers3.html":
+            self.mimetype = "application/html"
+        return self
+
+
+    def annotations(self):
+        c = self.papers3.dbconn.cursor()
+        try:
+            c2.execute(ANNOTATION_QUERY.format(row["uuid"]))
+            for row2 in c2:
+                yield Annotation(row2)
+        finally:
+            c.close()
+            c2.close()
+
+    @classmethod
+    def urn(cls):
+        return "papers3"
+
+class Paper(managers.Paper):
     """Publication type """
     pub_type = {
         -1000: 'chapter',
@@ -122,16 +127,109 @@ class Papers3(managers.Manager):
         999: 'entry',
     }
 
-    _xlate_month = {
-        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
-        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
-        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
-    }
+    field_mapping = {'number': 'number', 'volume': 'volume', 'editor_string': 'editor', 'abbreviation': 'abbreviation'}
 
-    def __init__(self, dbpath=defaults()["dbpath"]):
+    def __init__(self, papers3, uuid):
+        super().__init__(uuid, True)
+        self.papers3 = papers3
+
+    def populate(self, row):
+        self.type = Paper.pub_type.get(row["type"], "unknown")
+        self.title = row['attributed_title']
+
+        date = parse_date(row['publication_date'])
+
+        if date['month'] is not None:
+            self.month = date['month']
+        if date['year'] is not None:
+            self.year = date['year']
+
+        for field_src, field_dest in Paper.field_mapping.items():
+            setattr(self, field_dest, row[field_src])
+
+        # Bundle
+        if row["bundle"] != None:
+            self.container = Paper(self.papers3, row["bundle"])
+
+        self.abstract = row["summary"]
+
+        # Retrieve authors
+        authors = self.papers3.dbconn.cursor()
+        authors.execute(Papers3.AUTHOR_QUERY % self.uuid)
+        for author in authors:
+            self.authors.append(Author(author['uuid'], author['prename'], author['surname']))
+        authors.close()
+
+        self.surrogate = False
+
+    @staticmethod
+    def surrogate(papers3, uuid):
+        p = Paper(uuid, None)
+        p.papers3 = papers3
+        return p
+
+
+    def files(self):
+        c = self.papers3.dbconn.cursor()
+        try:
+            c.execute(PDF_QUERY.format(self.local_uuid))
+            if c.rowcount == 0: return []
+
+            for row in c:
+                file = File(self, row["local_uuid"])
+                file.populate(c, row)
+                yield file
+        finally:
+            c.close()
+
+    # def _retrieve(self):
+    #     p = self.papers3.get_publication_by_uuid(uuid)
+
+    @classmethod
+    def urn(cls):
+        return "papers3"
+
+
+class Author(managers.Author):
+    def __init__(self, uuid, firstname, surname):
+        managers.Author.__init__(self, uuid, firstname, surname)
+
+    @classmethod
+    def urn(cls):
+        return "papers3"
+
+class Collection(managers.Collection):
+    def __init__(self, papers3, *args):
+        self.papers3 = papers3
+        managers.Collection.__init__(self, *args)
+        del(self.publications)
+
+    def __getattr__(self, name):
+        if name == "publications":
+            c = self.papers3.dbconn.cursor()
+            try:
+                self.publications = []
+                c.execute("""SELECT object_id FROM CollectionItem WHERE collection="{}" """.format(self.local_uuid))
+                for row in c:
+                    self.publications.append(Paper.surrogate(self.papers3, row["object_id"]))
+            finally:
+                c.close()
+            return self.publications
+
+        return managers.Collection.__getattribute__(self, name)
+
+    @classmethod
+    def urn(cls):
+        return "papers3"
+
+class Papers3(managers.Manager):
+    """Interface to Papers3.app"""
+
+    def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["filebase"]):
         """Initialize the papers object"""
         self.dbpath = dbpath
         self.dbconn = sqlite3.connect(dbpath)
+        self.filebase = filebase
 
         ## Checks to see if this is a valid db connection
         c = self.dbconn.cursor()
@@ -140,24 +238,6 @@ class Papers3(managers.Manager):
         except sqlite3.OperationalError:
             raise ValueError("Invalid Papers3 database")
         self.dbconn.row_factory = dict_factory
-
-    def parse_publication_date(self, pub_date, translate_month=True, month=(6, 7),
-                               year=(2, 5)):
-        """99200406011200000000222000 == Jun 2004
-        returns (month, year) as strings
-        """
-        try:
-            cmonth = pub_date[month[0]:month[1] + 1]
-            if translate_month:
-                cmonth = Papers3._xlate_month[cmonth]
-        except:
-            cmonth = ''
-        try:
-            cyear = pub_date[year[0]:year[1] + 1]
-        except:
-            cyear = ''
-
-        return {'month': cmonth, 'year': cyear}
 
     def get_publication_by_uuid(self, ids, results={}, n=100):
         """Get a publication by its universal ID"""
@@ -251,38 +331,8 @@ class Papers3(managers.Manager):
                      WHERE oa.author_id = o.uuid and object_id="%s" ORDER BY priority"""
 
     def get_paper(self, row):
-        paper = Paper(row['uuid'], self.pub_type.get(row["type"], "unknown"))
-        paper.papers3 = self
-
-        paper.title = row['attributed_title']
-
-        date = self.parse_publication_date(row['publication_date'])
-
-        if date['month'] is not None:
-            paper.month = date['month']
-        if date['year'] is not None:
-            paper.year = date['year']
-
-        field_mapping = {'number': 'number', 'volume': 'volume', 'editor_string': 'editor', 'abbreviation': 'abbreviation'}
-        for field_src, field_dest in field_mapping.items():
-            setattr(paper, field_dest, row[field_src])
-
-        # Bundle
-        if row["bundle"] != None:
-            r = self.get_publication_by_uuid([row["bundle"]])
-            if row["bundle"] in r:
-                paper.container = r[row["bundle"]]
-
-        paper.abstract = row["summary"]
-
-        # Retrieve authors
-        authors = self.dbconn.cursor()
-        authors.execute(Papers3.AUTHOR_QUERY % paper.uuid)
-        for author in authors:
-            paper.authors.append(Author(author['uuid'], author['prename'], author['surname']))
-        authors.close()
-
-
+        paper = Paper(self, row['uuid'])
+        paper.populate(row)
         return paper
 
 
@@ -292,90 +342,12 @@ class Papers3(managers.Manager):
         parser.add_argument('--%sdbpath' % prefix, dest="dbpath", default=DEFAULTS['dbpath'],
                             help="The path to the Papers3 sqlite database, "
                             "defaults to [%s]." % DEFAULTS['dbpath'])
+        parser.add_argument('--%sfilebase' % prefix, dest="filebase", default=DEFAULTS['filebase'],
+                            help="The base path to the Papers3 file location, "
+                            "defaults to [%s]." % DEFAULTS['filebase'])
         parser.add_argument("--%shelp" % prefix, action="help", help="Provides helps about arguments for this manager")
         args, remaining_args = parser.parse_known_args(args)
-        return Papers3(args.dbpath), remaining_args
+        return Papers3(args.dbpath, args.filebase), remaining_args
 
 Manager = Papers3
 
-# # --- Command [get annotations] ---
-
-
-# def command_get_annotations(app, options):
-#     r = app.query_papers_by_citekey([options.citekey])
-
-#     papers = [p for p in r.values()]
-#     if len(papers) == 1:
-#         papers[0].annotations()
-
-
-# # --- Command [get] ---
-
-
-# def command_get(app, options):
-#     r = app.query_papers_by_citekey([options.citekey])
-#     # Retrieve cross references
-#     # for pub in list(r.values()):
-#     #     if "bundle" in pub is not None and pub["bundle"] not in r:
-#     #         app.get_publication_by_uuid([pub["bundle"]], r)
-#     sys.stdout.write(jsonpickle.encode(r))
-
-
-# # --- Command [get] ---
-
-
-# # --- Command [get] ---
-
-# def command_bibtex(app, options):
-#     r = app.query_papers_by_citekey([options.citekey],)
-
-#     for pub in list(r.values()):
-#         sys.stdout.write(bibtex.to_bibtex(pub, crossref))
-
-# # # --- Main part ----
-
-
-# # if __name__ == '__main__':
-# #     defaults()
-
-# #     # create the top-level parser
-# #     parser = argparse.ArgumentParser(description='Papers3 utility helper.')
-# #     parser.add_argument('-d', '--dbpath', dest="dbpath", default=DEFAULTS['dbpath'],
-# #                         help="The path to the Papers3 sqlite database, "
-# #                         "defaults to [%s]. If this is set, it will "
-# #                         "override the value set in your ~/.papersrc"
-# #                         "file." % DEFAULTS['dbpath'])
-# #     parser.add_argument('-v', '--verbose', action='store_true', default=False,
-# #                         help='Make some noise')
-
-# #     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
-
-# #     # "get" command
-# #     parser_get = subparsers.add_parser("get-annotations", help="Retrieves the annotations")
-# #     parser_get.add_argument("citekey", help="The cite key")
-
-# #     # "get" command
-# #     parser_get = subparsers.add_parser("get", help="Retrieves an entry from Papers3 database given its citekey")
-# #     parser_get.add_argument("citekey", help="The cite key")
-
-# #     # "bibtex" command
-# #     parser_bibtex = subparsers.add_parser("bibtex", help="Retrieves bibtex entries from Papers3 database given its citekey(s)")
-# #     parser_bibtex.add_argument("citekey", help="The cite key")
-
-# #     # "collections" command
-# #     parser_collections = subparsers.add_parser("collections", help="Retrieves papers3 collections")
-
-# #     options = parser.parse_args()
-
-# #     try:
-# #         app = Papers3(options.dbpath)
-# #     except ValueError:
-# #         parser.error("Problem connecting to database, is the following "
-# #                      "path to your Database.papersdb database correct?\n"
-# #                      "\t%s\n" % options.dbpath)
-# #     try:
-# #         fname = "command_%s" % options.command.replace("-", "_")
-# #         locals()[fname](app, options)
-# #     except Exception as e:
-# #         print("Error while running command %s:" % options.command)
-# #         raise
