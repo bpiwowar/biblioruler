@@ -1,114 +1,144 @@
-# Mendeley backend
+# Mendeley SQL backend
 
+import biblioruler.managers.base as managers
+from biblioruler.sqlite3utils import dict_factory
+import argparse
+import sqlite3
+import os
 import logging
-import managers
-import mendeley
-import oauth2 as oauth
-import http.server
-import socketserver
-from subprocess import call
+import platform
 
-PORT = 5000
-CLIENT_ID = "3060"
-CLIENT_SECRET = "Ov2qzRIsrpQXFUje"
-REDIRECT_URI = "http://localhost:5000"
+DEFAULTS = None
 
-class StateGenerator():
-    def generate_state(self):
-        return "1231293jfh2asdn24324wsa"
+def defaults():
+    """Get defaults"""
+    global DEFAULTS
+    if DEFAULTS is not None:
+        return DEFAULTS
 
-class AuthException(BaseException):
-    def __init__(self, path):
-        self.path = path
+    DEFAULTS = { "dbpath": None, "filebase": None }
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(bytes("<html><head><title>Authorization successful.</title></head>", "utf-8"))
-        self.wfile.write(bytes("</body></html>", "utf-8"))
-        raise AuthException(self.path)
-class Mendeley(managers.Paper):
-    def __init__(self):
-        m = mendeley.Mendeley(CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URI, state_generator=StateGenerator())
-        auth = m.start_authorization_code_flow()
-        login_url = auth.get_login_url()
-        httpd = socketserver.TCPServer(("", PORT), Handler)
-        call(["open", login_url])
+    if platform.system() == "Darwin":
+        import plistlib
 
-        path = None
+        with open(os.path.expanduser("~/Library/Preferences/com.mendeley.Mendeley Desktop.plist"), "rb") as fh:
+            plist = plistlib.load(fh)
+            DEFAULTS["dbpath"] = os.path.expanduser("~/Library/Application Support/Mendeley Desktop/") + plist["MendeleyWeb.userEmail"] + "@www.mendeley.com.sqlite"
+            logging.info("Mendeley database path: " + DEFAULTS["dbpath"])
+
+    return DEFAULTS
+
+class Paper(managers.Paper):
+    """A Mendeley paper"""
+    BASE_QUERY = """SELECT uuid, type, id, title, userType, issn, isbn, year, month, pages, pmid,
+                read, favourite, note, abstract
+                FROM Documents"""
+    TYPES = {
+        'Book': 'book',
+        'WorkingPaper': 'report',
+        'report': 'report',
+        'ConferenceProceedings': 'proceedings',
+        'Thesis': 'thesis', # phd or master -> userType
+        'MagazineArticle': 'article-journal',
+        'Patent': 'patent',
+        'WebPage': 'webpage',
+        'Generic': 'entry',
+        'JournalArticle': 'article-journal',
+    }
+
+    def __init__(self, manager, uuid):
+        managers.Paper.__init__(self, uuid)
+        self.manager = manager
+    
+    def populate(self, row):
+        self.title = row["title"]
+        self.type = Paper.TYPES[row["type"]]
+        self.abstract = row["abstract"]
+
+        self.month = row["month"]
+        self.year = str(row["year"])
+        self.surrogate = False
+
+    @staticmethod
+    def createFromDB(manager, row):
+        paper = Paper(manager, row["uuid"])
+        paper.populate(row)
+        return paper
+
+class Author(managers.Author):
+    """An author"""
+    pass
+
+class Collection(managers.Collection):
+    """A collection"""
+    BASE_QUERY = """SELECT id, uuid, name, parentId FROM Folders"""
+
+    def __init__(self, manager, uuid, name):
+        managers.Collection.__init__(self, uuid, name)
+        self.manager = manager
+
+    def populate(self, row):
+        self.parentId = row["parentId"]
+        self.id = row["id"]
+        if self.parentId < 0: self.parentId = None
+
+    @staticmethod
+    def createFromDB(manager, row):
+        collection = Collection(manager, row["uuid"], row["name"])
+        collection.populate(row)
+        return collection
+
+class Manager(managers.Manager):
+    """Mendeley manager"""
+    def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["filebase"]):
+        """Initialize the manager"""
+        managers.Manager.__init__(self, None, surrogate=False)
+        self.dbpath = dbpath
+        self.dbconn = sqlite3.connect(dbpath)
+        self.filebase = filebase
+
+        ## Checks to see if this is a valid db connection
+        c = self.dbconn.cursor()
         try:
-            httpd.serve_forever()
-        except AuthException as e:
-            path = e.path
+            c.execute("SELECT * FROM DocumentZotero LIMIT 1;")
+        except sqlite3.OperationalError:
+            raise ValueError("Invalid Papers3 database")
+        self.dbconn.row_factory = dict_factory
+    
+    def collections(self):
+        c = self.dbconn.cursor()
+        try:
+            collections = {}
+            c.execute(Collection.BASE_QUERY)
+            for row in c:
+                collection = Collection.createFromDB(self, row)
+                collections[collection.id] = collection
+            
+            for collection in collections.values():
+                if collection.parentId is not None:
+                    collection.parent = collections[collection.parentId]
+            return collections
         finally:
-            httpd.server_close()
+            c.close()
+        
+    def publications(self):
+        c = self.dbconn.cursor()
+        try:
+            c.execute(Paper.BASE_QUERY)
+            for row in c:
+                yield Paper.createFromDB(self, row)
+        finally:
+            c.close()
 
-        session = auth.authenticate(path)
 
-
-
-# import urllib.parse
-# import oauth2 as oauth
-
-# consumer_key = CLIENT_ID
-# consumer_secret = CLIENT_SECRET
-
-# request_token_url = 'https://api.mendeley.com/oauth/token'
-# access_token_url = 'https://api.mendeley.com/oauth/access_token'
-# authorize_url = 'https://api.mendeley.com/oauth/authorize'
-
-# consumer = oauth.Consumer(consumer_key, consumer_secret)
-# client = oauth.Client(consumer)
-
-# # Step 1: Get a request token. This is a temporary token that is used for
-# # having the user authorize an access token and to sign the request to obtain
-# # said access token.
-
-# resp, content = client.request(request_token_url, "GET")
-# if resp['status'] != '200':
-#     raise Exception("Invalid response %s." % resp['status'])
-
-# request_token = dict(urllib.parse.parse_qsl(content))
-
-# print("Request Token:")
-# print("    - oauth_token        = %s" % request_token['oauth_token'])
-# print("    - oauth_token_secret = %s" % request_token['oauth_token_secret'])
-# print()
-
-# # Step 2: Redirect to the provider. Since this is a CLI script we do not
-# # redirect. In a web application you would redirect the user to the URL
-# # below.
-
-# print("Go to the following link in your browser:")
-# print("%s?oauth_token=%s" % (authorize_url, request_token['oauth_token']))
-# print()
-
-# # After the user has granted access to you, the consumer, the provider will
-# # redirect you to whatever URL you have told them to redirect to. You can
-# # usually define this in the oauth_callback argument as well.
-# accepted = 'n'
-# while accepted.lower() == 'n':
-#     accepted = input('Have you authorized me? (y/n) ')
-# oauth_verifier = input('What is the PIN? ')
-
-# # Step 3: Once the consumer has redirected the user back to the oauth_callback
-# # URL you can request the access token the user has approved. You use the
-# # request token to sign this request. After this is done you throw away the
-# # request token and use the access token returned. You should store this
-# # access token somewhere safe, like a database, for future use.
-# token = oauth.Token(request_token['oauth_token'],
-#     request_token['oauth_token_secret'])
-# token.set_verifier(oauth_verifier)
-# client = oauth.Client(consumer, token)
-
-# resp, content = client.request(access_token_url, "POST")
-# access_token = dict(urllib.parse.parse_qsl(content))
-
-# print("Access Token:")
-# print("    - oauth_token        = %s" % access_token['oauth_token'])
-# print("    - oauth_token_secret = %s" % access_token['oauth_token_secret'])
-# print()
-# print("You may now access protected resources using the access tokens above.")
-# print()
+    @staticmethod
+    def create(prefix, args):
+        """Creates a new manager"""
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument('--%sdbpath' % prefix, dest="dbpath", default=DEFAULTS['dbpath'],
+                            help="The path to the Papers3 sqlite database, "
+                            "defaults to [%s]." % DEFAULTS['dbpath'])
+        parser.add_argument("--%shelp" % prefix, action="help",
+            help="Provides helps about arguments for this manager")
+        args, remaining_args = parser.parse_known_args(args)
+        return Manager(args.dbpath), remaining_args

@@ -12,6 +12,7 @@ import logging
 import platform
 
 import biblioruler.managers.base as managers
+from biblioruler.sqlite3utils import dict_factory
 
 
 ANNOTATION_QUERY = """SELECT uuid, contents, type, text, created_at, left, height, rectangles FROM Annotation WHERE object_id = "{}" """
@@ -37,15 +38,6 @@ def defaults():
             logging.info("Papers3 database path: " + DEFAULTS["dbpath"])
 
     return DEFAULTS
-
-def dict_factory(cursor, row):
-    """Used to extract results from a sqlite3 row by name"""
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
-
 
 
 _xlate_month = {

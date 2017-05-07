@@ -28,8 +28,12 @@ class Object:
 
     def __getattr__(self, name):
         # Retrieve the surrogate if need be
+        if name == "surrogate": 
+            return False
+
         if self.surrogate:
             logging.debug("Retrieving surrogate %s [access to %s]\n" % (self.uuid, name))
+            self._retrieve()
             self.surrogate = False
             return getattr(self, name)
 

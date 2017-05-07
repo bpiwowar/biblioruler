@@ -5,155 +5,178 @@ modified: 2016-05-31 13:37:00 -0500
 image: 
 ---
 
-[Digital Humanities in Other Contexts](http://roopikarisam.com/uncategorized/digital-humanities-in-other-contexts/)
-
-> do ethical things with data.
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Digital Humanities in Other Contexts](http://roopikarisam.com/uncategorized/digital-humanities-in-other-contexts/)
-
-> There is no island of pure critique.
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Digital Humanities in Other Contexts](http://roopikarisam.com/uncategorized/digital-humanities-in-other-contexts/)
-
-> there is also no digital humanities without complicity,
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Digital Humanities in Other Contexts](http://roopikarisam.com/uncategorized/digital-humanities-in-other-contexts/)
-
-> there is no digital humanities without community
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Retweeting and Comprehension](https://hapgood.us/2016/04/12/retweeting-and-comprehension/)
-
-> the nature of the stream is it pushes you away from comprehension and into rhetoric. Rather than seeking to understand, the denizen of the modern Twitter or Weibo feed seeks to sort incoming information as right or wrong, helpful or unhelpful, worth retweeting or not retweeting, worth getting into a righteous rage about or not
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[In Public: The Shifting Consequences of Twitter Scholarship](http://www.digitalpedagogylab.com/hybridped/occupy-the-digital-critical-pedagogy-and-new-media/)
-
-> Digital tools offer the opportunity to refocus how power works in the classroom.
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Open Source is losing, SaaS is leading, APIs will win… — Point Nine Land — Medium](https://medium.com/point-nine-news/open-source-is-losing-saas-is-leading-apis-will-win-663648d9c8d0)
-
-> APIs are building blocks of software by definitionCompared with SaaS, by nature, they are platforms that allow development on top of them.It brings back the nature of “building block” that open source has and SaaS lost.API’s businesses focus on solving “smaller” problems but hard to crackFor that reason, there are higher chances that customers will trust an API provider for their core infrastructure.“If this is the only thing those guys do, there’s high chances they will do it better than myself”.
-
-This idea of APIs blending the best (business models) of open source and SaaS is intriguing.
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[How to write a good blog post  - Om Malik](http://om.co/2016/03/26/how-to-write-a-good-blog-post/)
-
-> start with the basic premise: respecting your  reader’s time. Can they find the story somewhere else, and if yes, then WHY should they read you? What makes what you want to publish so special? Remember, readers have a million choices, to find information. They are better equipped than you. So why should they come to you? What is it that you got that others don’t?
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[How to write a good blog post  - Om Malik](http://om.co/2016/03/26/how-to-write-a-good-blog-post/)
-
-> One doesn’t need to be a pundit, one needs to read more, and have the ability to learn from every conversation.
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[How to write a good blog post  - Om Malik](http://om.co/2016/03/26/how-to-write-a-good-blog-post/)
-
-> write posts that are more informed, more insightful, and more respectful of the readers.
-
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Heresy and kindness](http://musicfordeckchairs.com/blog/2016/03/21/heresy-and-kindness/)
+[The Resident Web and Its Impact on the Academy - Hybrid Pedagogy](http://www.digitalpedagogylab.com/hybridped/truthy-lies-surreal-truths/)
 
 > No highlighted text found.
-
-I wish this were true more often.
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-['I Love My Label': Resisting the Pre-Packaged Sound in Ed-Tech](http://hackeducation.com/2016/03/18/i-love-my-label)
-
->  If we don’t like ‘the system’ of ed-tech, we should create one of our own.    It’s actually not beyond our reach to do so.
-
-Yes!
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-['I Love My Label': Resisting the Pre-Packaged Sound in Ed-Tech](http://hackeducation.com/2016/03/18/i-love-my-label)
-
-> Our challenge remains – in indie music and in indie scholarship and in indie ed-tech – to make this path one that is economically and emotionally sustainable.
-
-If we don't, then indie/ open become the domain of the elite and privileged.
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-['I Love My Label': Resisting the Pre-Packaged Sound in Ed-Tech](http://hackeducation.com/2016/03/18/i-love-my-label)
-
-> what I do now – write about education technology – has nothing to do with what I studied formally as an undergraduate or a graduate student. But if nothing else, there I learned how to be a critical thinker, a thoughtful researcher, and a decent writer – and I’d contend that no matter what major you pursue in school, these are the sorts of skills all students should, ideally, come away with.
-
-That's what education *should* be.
-(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
-
-<hr/>
-
-[Unleashed](http://musicfordeckchairs.com/blog/2016/03/16/unleashed/)
-
-> Simply saying competition is divisive won’t raise standards for collaboration, and won’t create the grounds for hope. To do this, we urgently need to start collecting new stories and evidence of a different culture forged in kindness, that we know we can build together. Then maybe we need to start making our own videos.
 
 Yes.
 (Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
 
 <hr/>
 
-[Stress and The Kindness of Strangers](https://academicirregularities.wordpress.com/2016/03/10/stress-and-the-kindness-of-strangers/)
+[The Resident Web and Its Impact on the Academy - Hybrid Pedagogy](http://www.digitalpedagogylab.com/hybridped/truthy-lies-surreal-truths/)
 
-> I told them you could work 60 hours a week, never take a holiday or weekend off, have internationally regarded publications – lots of them, write textbooks, be a great teacher, and managers will still ask for more. And more. I told them you are measured only by what you have not managed to achieve, not what you have achieved, never mind how valuable or prestigious.
+> No highlighted text found.
 
-Unfortunately, this is how academics assess their students, too.
+I can buy that. Though I do maintain that there are some fundamental differences in the networked structure of contemporary digital media that require new approaches. Connectivism has something to say here, but still not sufficient without thinking about how all these things intersect in ways we haven't faced historically.
 (Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
 
 <hr/>
 
-[Stress and The Kindness of Strangers](https://academicirregularities.wordpress.com/2016/03/10/stress-and-the-kindness-of-strangers/)
+[RTDNA - Radio Television Digital News Association](https://www.rtdna.org/content/edward_r_murrow_s_1958_wires_lights_in_a_box_speech)
 
->  In effect, the status of an academic has slid from institutional asset to indentured servant. 
+> No highlighted text found.
 
-This is unsustainable, and is already leading to good academics leaving the academy.
+Yes! Though it seems like there is a greater diversity of voices, there has been so much corporate conglomeration that there are only a few (or even one or two) big companies in each industry that control most of the message. Big problem.
 (Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
 
 <hr/>
 
-[Hapgood](http://hapgood.us/)
+[RTDNA - Radio Television Digital News Association](https://www.rtdna.org/content/edward_r_murrow_s_1958_wires_lights_in_a_box_speech)
 
-> And so the answer to the question “Why is Twitter so culturally complex?” is that it’s the wrong question. It’s Facebook that is the weird thing here, a community that doesn’t develop an overall culture overtime.
+> No highlighted text found.
 
- 
+Mike Caulfield has been blog-storming lately about the specific ways in which fake news, in particular, shared on social media shapes the way we think...and vote. https://hapgood.us/
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[RTDNA - Radio Television Digital News Association](https://www.rtdna.org/content/edward_r_murrow_s_1958_wires_lights_in_a_box_speech)
+
+> No highlighted text found.
+
+['Mockingjay' and the Contradictory Message of 'Revolutionary' Media](http://www.alternet.org/culture/mockingjay-and-contradictory-message-revolutionary-media)
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[RTDNA - Radio Television Digital News Association](https://www.rtdna.org/content/edward_r_murrow_s_1958_wires_lights_in_a_box_speech)
+
+> No highlighted text found.
+
+It's amazing how many different funding models are possible on the web, and big news outlets still rely on advertising. There *are* other models possible, but the same advertiser-network-journalist connection is still there.
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[RTDNA - Radio Television Digital News Association](https://www.rtdna.org/content/edward_r_murrow_s_1958_wires_lights_in_a_box_speech)
+
+> This instrument can teach, it can illuminate; yes, and even it can inspire. But it can do so only to the extent that humans are determined to use it to those ends. Otherwise, it's nothing but wires and lights in a box.
+
+This sums up so much about the internet for me. So many great potentials -- even (especially?) on social media. And yet, Netflix encompasses 1/3 of web traffic, and [Facebook spreads fake news more readily than real news](https://hapgood.us/2016/11/13/fake-news-does-better-on-facebook-than-real-news/). We need the internet to inspire and illuminate, not just innoculate and misinform.
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[Hillary Clintonâ€™s Encryption Proposal Was â€œImpossible,â€ Said Top Adviser](https://theintercept.com/2016/10/14/hillary-clintons-encryption-proposal-was-impossible-said-top-adviser/)
+
+> Google revealed WednesdayÂ it had been released from an FBI gag order that came with a secret demand for its customersâ€™ personal information.
+
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[Hillary Clintonâ€™s Encryption Proposal Was â€œImpossible,â€ Said Top Adviser](https://theintercept.com/2016/10/14/hillary-clintons-encryption-proposal-was-impossible-said-top-adviser/)
+
+> Cryptography experts overwhelmingly agree that backdoors inevitably undermine the security of strong encryption, making the two essentially incompatible.
+
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[From STEM to STEAM: Reframing What it Means to Learn](http://scholarship.claremont.edu/cgi/viewcontent.cgi?article=1092&context=steam)
+
+> Learning  is  emergent  and  not  prescriptive. 
+
+Yes!
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[From STEM to STEAM: Reframing What it Means to Learn](http://scholarship.claremont.edu/cgi/viewcontent.cgi?article=1092&context=steam)
+
+> No highlighted text found.
+
+I've heard a similar explanation, but it goes industry -> information -> attention. I think the idea that we're in an attention economy, where the moderating of one's own attention and the competing for the attention of others are paramount. I think that makes more sense of where we are now.
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[How Colleges Should Adapt in a Networked Age](http://www.chronicle.com/article/How-Colleges-Should-Adapt-in-a/237842)
+
+> And now the machines are going to be producing a set of answers and weâ€™ll have to say, Yeah, all I know is this thing does math better than me, so if it says this is true, itâ€™s probably true.
+
+Data scientists don't stop at "the machine knows". If the machine "knows" something they don't, it's that much more motivation to learn why! Curiosity isn't dead. Not for students, not for instructors, not for data scientists. If there's a problem here, it's that lectures and instructor demos don't pique curiosity. Pique students curiosity, and give them the resources and support they need, and amazing things can happen!
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[How Colleges Should Adapt in a Networked Age](http://www.chronicle.com/article/How-Colleges-Should-Adapt-in-a/237842)
+
+> redesign
+
+Thank you. :)
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[How Colleges Should Adapt in a Networked Age](http://www.chronicle.com/article/How-Colleges-Should-Adapt-in-a/237842)
+
+> Thereâ€™s a mismatch between what the professors are trying to get them to do, which is really understanding, and what the kids are trying to do, which is to know it. You canâ€™t fight history â€” they are moving to a world of knowing, not understanding.
+
+This is not at all my experience. When motivated, my students really work hard to grok stuff.
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[How Colleges Should Adapt in a Networked Age](http://www.chronicle.com/article/How-Colleges-Should-Adapt-in-a/237842)
+
+> How do you actually get the ideas into the brains of these kids?
+
+Interesting. Who has the agency here? (I think calling adult students "kids" reduces the expectation of agency even more.)
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[How Colleges Should Adapt in a Networked Age](http://www.chronicle.com/article/How-Colleges-Should-Adapt-in-a/237842)
+
+> re-engineer themselves
+
+The verb "engineer" here is telling. Nothing against engineers at all, but there are many other professionals that create and design. Why not "recreate", "redesign", "reform"? And while we're at it, why aren't "re-humanist" and "re-artist" verbs? What is it about engineer?
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[In The Future, Our Attention Will Be Sold](https://markmanson.net/attention)
+
+> Limitless access to knowledge brings limitless opportunity. But only to those who learn to manage the new currency: their attention.
+
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[Coding is not â€˜funâ€™, itâ€™s technically and ethically complex â€“ Walter Vannini | Aeon Ideas](https://aeon.co/ideas/coding-is-not-fun-it-s-technically-and-ethically-complex)
+
+> Programming is not a detail that can be left to â€˜techniciansâ€™ under the false pretence that their choices will be â€˜scientifically neutralâ€™. Societies are too complex
+
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[Coding is not â€˜funâ€™, itâ€™s technically and ethically complex â€“ Walter Vannini | Aeon Ideas](https://aeon.co/ideas/coding-is-not-fun-it-s-technically-and-ethically-complex)
+
+> Insisting on the glamour and fun of coding is the wrong way to acquaint kids with computer science. It insults their intelligence and plants the pernicious notion in their heads that you donâ€™t need discipline in order to progress. As anyone with even minimal exposure to making software knows, behind a minute of typing lies an hour of study.
+
+Thank you!
+(Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
+
+<hr/>
+
+[Andrew Sullivan: My Distraction Sickness â€” and Yours](http://nymag.com/selectall/2016/09/andrew-sullivan-technology-almost-killed-me.html)
+
+> The English Reformation began, one recalls, with an assault on the monasteries
+
+No, it began well before that. If any event precipitated it, it was the translation of parts of the Bible into English.
 (Curated by [kris.shaffer](https://hypothes.is/stream?=user:kris.shaffer))
 
 <hr/>
