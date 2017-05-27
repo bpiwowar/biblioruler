@@ -4,8 +4,8 @@
 # GPLv3 licence. See the COPYING file for details
 
 import sqlite3
-from urllib import unquote
-from urlparse import urlparse
+from urllib.parse import unquote
+from urllib.parse import urlparse
 import os
 import pdfannotation
 import PyPDF2
@@ -114,7 +114,7 @@ def get_notes_from_db(db, results={}):
     return results
 
 def add_annotation2pdf(inpdf, outpdf, annotations):
-    for pg in annotations.keys():
+    for pg in list(annotations.keys()):
         inpg = inpdf.getPage(pg-1)
         if 'highlights' in annotations[pg]:
             for hn in annotations[pg]['highlights']:
@@ -138,25 +138,25 @@ def processpdf(fn, fn_out, annotations):
             inpdf._override_encryption = True
             inpdf._flatten()
     except IOError:
-        print "Could not find pdffile %s"%fn
+        print("Could not find pdffile %s"%fn)
         return
     outpdf = PyPDF2.PdfFileWriter()
     outpdf = add_annotation2pdf(inpdf, outpdf, annotations)
     if os.path.isfile(fn_out):
         if not OVERWRITE_PDFS:
-            print "%s exists skipping"%fn_out
+            print("%s exists skipping"%fn_out)
             return
         else:
-            print "overwriting %s"%fn_out
+            print("overwriting %s"%fn_out)
     else:
-        print "writing pdf to %s"%fn_out
+        print("writing pdf to %s"%fn_out)
     outpdf.write(open(fn_out, "wb"))
 
 def mendeley2pdf(fn_db, dir_pdf):
     db = sqlite3.connect(fn_db)
     highlights = get_highlights_from_db(db)
     annotations_all = get_notes_from_db(db, highlights)
-    for fn, annons in annotations_all.iteritems():
+    for fn, annons in annotations_all.items():
         processpdf(fn, os.path.join(dir_pdf, os.path.basename(fn)), annons)
 
 if __name__ == "__main__":

@@ -173,7 +173,7 @@ if __name__ == '__main__':
     try:
         inpdf = pyPdf.PdfFileReader(open(sys.argv[1], 'rb'))
     except (IndexError, IOError):
-        print "Needs PDF file as an argument."
+        print("Needs PDF file as an argument.")
         raise SystemExit
     annot1 = highlight_annotation([[100, 100, 400, 125]],
                 'An argument is a connected series of statements intended to establish a proposition.',
@@ -186,4 +186,4 @@ if __name__ == '__main__':
     add_annotation(outpdf, page, annot2)
     outpdf.addPage(page)
     outpdf.write(open('pythonannotation.pdf', 'wb'))
-    print "Highlighted PDF output to pythonannotation.pdf"
+    print("Highlighted PDF output to pythonannotation.pdf")
