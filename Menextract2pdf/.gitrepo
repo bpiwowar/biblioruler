@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/cycomanic/Menextract2pdf.git
+	branch = master
+	commit = 44850aadf0ed44bd2ffdcaac176f605b3c2b777b
+	parent = 9d148f72408c330014c494400287813a9356e4db
+	cmdver = 0.3.1
