@@ -74,6 +74,5 @@ try:
     locals()[fname](args, remaining_args)
 except Exception as e:
     print(e)
-    if args.debug:
-        print(traceback.format_exc())
+    print(traceback.format_exc())
     sys.exit(1)
