@@ -151,7 +151,7 @@ class Exporter:
                 try:
                     f.embed_annotations(path)
                 except Exception as e:
-                    os.unlink(path)
+                    if op.exists(path): os.remove(path)
                     if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
                         logging.error("Error while annotating (%s): %s", type(e), e)
                         write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", f.path)

@@ -7,6 +7,23 @@ The goal of this project is to create a common interface to the different biblio
 
 ## Supported Inputs
 
+- Mendeley
+- Papers (broken)
+
+## Supported output
+
+- Annotated PDF using PyPDF2
+- Zotero RDF
+
+# Exemples
+
+## Export Mendeley to Zotero-RDF with annotated PDFs
+
+```
+python3  -m biblioruler export mendeley zotero_rdf <basename> --exporter-annotate
+```
+where `basename` is the name the folder where PDF will be stored, and also the basename of the RDF file `basename.rdf`.
+
 
 # Information
 
