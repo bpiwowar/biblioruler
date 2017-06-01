@@ -39,11 +39,11 @@ def defaults():
 @Resource(urn="mendeley:paper")
 class Paper(managers.Paper):
     """A Mendeley paper"""
-    BASE_QUERY = """SELECT uuid as __uuid, type as __type, id, userType as __userType, 
-                publication as __publication, note as __note, added as __added,
-                title, issn, isbn, year, month, pages, pmid, doi,
-                read, favourite, abstract, institution
-                FROM Documents WHERE not(deletionPending)"""
+    BASE_QUERY = """SELECT d.uuid as __uuid, d.type as __type, d.id, d.userType as __userType, 
+                d.publication as __publication, d.note as __note, d.added as __added,
+                d.title, d.issn, d.isbn, d.year, d.month, d.pages, d.pmid, d.doi,
+                d.read, d.favourite, d.abstract, d.institution
+                FROM Documents d"""
 
     AUTHORS_QUERY = """SELECT contribution, firstNames, lastName FROM DocumentContributors WHERE documentId=%d ORDER BY id"""
     TAG_QUERY = """SELECT tag FROM DocumentTags WHERE documentId=%d"""
@@ -217,8 +217,8 @@ class Author(managers.Author):
 @Resource(urn="mendeley")
 class Collection(managers.Collection):
     """A collection"""
-    BASE_QUERY = """SELECT id, name, parentId FROM Folders"""
-    DOCUMENT_QUERY = """SELECT d.uuid, documentId, folderId FROM DocumentFolders df, Documents d WHERE d.id = df.documentId and not(d.deletionPending)"""
+    BASE_QUERY = """SELECT f.id, f.name, f.parentId FROM Folders f"""
+    DOCUMENT_QUERY = """SELECT d.uuid, documentId, folderId FROM DocumentFolders df, Documents d WHERE d.id = df.documentId"""
 
     def __init__(self, manager, uuid, name):
         managers.Collection.__init__(self, uuid, name)
@@ -262,12 +262,15 @@ class Manager(managers.Manager):
         except sqlite3.OperationalError:
             raise ValueError("Invalid Papers3 database")
         self.dbconn.row_factory = dict_factory
-    
+
     def collections(self):
         c = self.dbconn.cursor()
         try:
             collections = {}
-            c.execute(Collection.BASE_QUERY)
+            query = Collection.BASE_QUERY
+            query += """, Groups g, RemoteFolders rf 
+                WHERE g.groupType == 'PersonalGroupType' AND rf.folderId = f.id and rf.groupId=g.id"""
+            c.execute(query)
             for row in c:
                 collection = Collection.createFromDB(self, row)
                 collections[collection.id] = collection
@@ -278,11 +281,13 @@ class Manager(managers.Manager):
             return collections
         finally:
             c.close()
-        
+
     def publications(self):
         c = self.dbconn.cursor()
         try:
-            c.execute(Paper.BASE_QUERY)
+            query = Paper.BASE_QUERY + """, Groups g, RemoteDocuments rd 
+                WHERE g.groupType == 'PersonalGroupType' AND rd.documentId = d.id and rd.groupId=g.id"""
+            c.execute(query)
             for row in c:
                 yield Paper.createFromDB(self, row)
         finally:
