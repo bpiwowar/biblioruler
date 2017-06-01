@@ -53,6 +53,7 @@ class Exporter:
         self.embed_container = True
         self.annotate = False
         self.path = None
+        self.overwrite = False
 
     def export(self, path, publications, collections):
         self.path = path
@@ -87,7 +88,7 @@ class Exporter:
 
         write(f, indent, '<bib:{} rdf:about="#{}">\n', gtype, paper.uuid)
 
-        if len(paper.authors) > 0:
+        if paper.authors:
             write(f, indent+1, u"<bib:authors><rdf:Seq>\n")
             for author in paper.authors:
                 write(f, indent+2, "<rdf:li>\n")
@@ -99,7 +100,8 @@ class Exporter:
         write(f, indent+1, """<dc:title>{}</dc:title>\n""", escape(paper.title))
 
         if hasattr(paper, "abstract"):
-            write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", escape(paper.abstract), condition=paper.abstract)
+            write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", 
+                escape(paper.abstract), condition=paper.abstract)
 
 
         for keyword in paper.keywords:
@@ -111,7 +113,8 @@ class Exporter:
                 self.output_paper(f, paper.container, indent+2)
                 write(f, indent+1, """</dcterms:isPartOf>\n""")
             else:
-                write(f, indent+1, """<dcterms:isPartOf rdf:resource="{}"/>\n""", paper.container.uuid)
+                write(f, indent+1, """<dcterms:isPartOf rdf:resource="{}"/>\n""", 
+                    paper.container.uuid)
 
 
         date = paper.date()
@@ -149,17 +152,19 @@ class Exporter:
                 path = op.join(self.path, uuidpath + "-" + op.basename(f.path))
                 logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
                 try:
-                    f.embed_annotations(path)
+                    if (not op.exists(path)) or (os.stat(path).st_size == 0):
+                        f.embed_annotations(path)
+                    write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
                 except Exception as e:
                     if op.exists(path): os.remove(path)
                     if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
                         logging.error("Error while annotating (%s): %s", type(e), e)
-                        write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", f.path)
+                        write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
                     else:
                         raise
                     
             else:
-                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", f.path)
+                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
             write(out, indent, """</z:Attachment>\n""")
 
     def output_collection(self, collection, f, indent=0):
@@ -185,6 +190,7 @@ class Exporter:
 
         add_argument("help", action="help", help="Provides helps about arguments for this manager")
         add_argument("annotate", action="store_true", help="Export files with embedded annotations")
+        add_argument("overwrite", action="store_true", help="Overwrite files with embedded annotations if they exist")
 
         args, remaining_args = parser.parse_known_args(args, namespace=self)
         return self, remaining_args
