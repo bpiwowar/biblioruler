@@ -139,7 +139,10 @@ class File(Object):
         return self.annotations
     
     def exists(self):
-        return op.exists(self.path) and (os.stat(self.path).st_size > 0)
+        if not op.isfile(self.path): 
+            return False
+        s = os.stat(self.path)
+        return s.st_size > 0
 
     @property
     def annotations(self):
