@@ -85,6 +85,10 @@ class Paper(Object):
     def __init__(self, uuid, surrogate=True):
         super().__init__(uuid, surrogate)
         self.local_uuid = uuid
+
+
+    def init(self):
+        """Initialize properly the fields"""
         self.authors = []
         self.files = []
         self.keywords = set()
@@ -92,6 +96,9 @@ class Paper(Object):
         self.container = None
         self.month = None
         self.year = None
+
+        # When the paper was added to the library
+        self.creationdate = None
 
     def __setattr__(self, name, value):
         if name == "type" and value is not None:

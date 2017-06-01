@@ -10,8 +10,10 @@ from biblioruler.sqlite3utils import dict_factory
 import argparse
 import sqlite3
 import os
+import os.path as op
 import logging
 import platform
+import datetime as dt
 
 DEFAULTS = None
 
@@ -28,7 +30,8 @@ def defaults():
 
         with open(os.path.expanduser("~/Library/Preferences/com.mendeley.Mendeley Desktop.plist"), "rb") as fh:
             plist = plistlib.load(fh)
-            DEFAULTS["dbpath"] = os.path.expanduser("~/Library/Application Support/Mendeley Desktop/") + plist["MendeleyWeb.userEmail"] + "@www.mendeley.com.sqlite"
+            DEFAULTS["dbpath"] = op.join(op.expanduser("~/Library/Application Support/Mendeley Desktop/"),
+                plist["MendeleyWeb.userEmail"] + "@www.mendeley.com.sqlite")
             logging.info("Mendeley database path: " + DEFAULTS["dbpath"])
 
     return DEFAULTS
@@ -37,7 +40,7 @@ def defaults():
 class Paper(managers.Paper):
     """A Mendeley paper"""
     BASE_QUERY = """SELECT uuid as __uuid, type as __type, id, userType as __userType, 
-                publication as __publication, note as __note,
+                publication as __publication, note as __note, added as __added,
                 title, issn, isbn, year, month, pages, pmid, doi,
                 read, favourite, abstract, institution
                 FROM Documents WHERE not(deletionPending)"""
@@ -67,6 +70,8 @@ class Paper(managers.Paper):
         self.manager = manager
 
     def populate(self, row):
+        self.init()
+
         """Populate from DB"""
         for key, value in row.items():
             if not key.startswith("__"):
@@ -76,12 +81,16 @@ class Paper(managers.Paper):
 
         if self.type in ["article-journal", "paper-conference"] and row["__publication"]:
             self.container = Paper(self.manager, "container:%s" % self.local_uuid)
+            self.container.init()
             self.container.title = row["__publication"]
             self.container.type = "journal"
             self.container.surrogate = False
 
         if row["__note"] is not None:
             self.notes.append(Note(html=row["__note"], uuid="paper:%d:note" % (self.id)))
+
+        if row["__added"] is not None:
+            self.creationdate = dt.datetime.fromtimestamp(row["__added"] / 1000)
 
         c = self.manager.dbconn.cursor()
         try:
@@ -116,7 +125,7 @@ class Paper(managers.Paper):
                 self.files.append(File(self.manager, row["hash"], row["localUrl"]))
         finally:
             c.close()
-
+            
 
         self.surrogate = False
 
@@ -125,6 +134,7 @@ class Paper(managers.Paper):
         paper = Paper(manager, "%s" % row["__uuid"])
         paper.populate(row)
         return paper
+
 
 
 def converturl2abspath(url):
@@ -290,7 +300,4 @@ class Manager(managers.Manager):
             help="Provides helps about arguments for this manager")
         args, remaining_args = parser.parse_known_args(args)
         return Manager(args.dbpath), remaining_args
-
-
-
 

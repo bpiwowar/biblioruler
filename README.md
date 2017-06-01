@@ -6,13 +6,26 @@ The goal of this project is to create a common interface to the different biblio
 
 ## Supported Inputs
 
-- Mendeley
-- Papers (broken)
+## Mendeley
+
+What is imported:
+
+- Title, year, authors
+- Conference title, 
+- Keywords and Note
+- PDF and their annotations
+
+## Papers (broken)
+
+The code has not been updated for a while, so it might or might not work
 
 ## Supported output
 
-- Annotated PDF using PyPDF2
-- Zotero RDF
+### Annotated PDF using PyPDF2
+
+### Zotero RDF
+
+Zotero RDF export is almost functional. I advice you test it by using a test profile in Zotero, to check first if everything is going well, before importing it in your main library.
 
 # Exemples
 

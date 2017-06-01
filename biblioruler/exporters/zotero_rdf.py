@@ -74,8 +74,6 @@ class Exporter:
 
             for p in publications:
                 self.output_paper(out, p, indent=1)
-                for f in p.files:
-                    self.output_file(out, f, indent=2)
 
             for c in collections:
                 self.output_collection(c, out, indent=1)
@@ -85,6 +83,11 @@ class Exporter:
     def output_paper(self, f, paper, indent=0):
         _indent = "  " * indent
         gtype = BIBTYPE.get(paper.type, "Article")
+
+        attachments = []
+        for file in paper.files:
+            if self.output_file(f, file, indent=indent):
+                attachments.append(file.uuid)
 
         write(f, indent, '<bib:{} rdf:about="#{}">\n', gtype, paper.uuid)
 
@@ -103,6 +106,8 @@ class Exporter:
             write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", 
                 escape(paper.abstract), condition=paper.abstract)
 
+        # for attachment in attachments:
+        #     write(f, indent+1, """<link:link rdf:resource="{}"/>""", escape(attachment))
 
         for keyword in paper.keywords:
             write(f, indent+1, """<dc:subject>{}</dc:subject>""", escape(keyword))
@@ -120,6 +125,8 @@ class Exporter:
         date = paper.date()
         write(f, indent+1, u"""<dc:date>{}</dc:date>\n""", date, condition=len(date) > 0)
 
+        write(f, indent+1, """<dcterms:dateSubmitted>{:%Y-%m-%d %H:%M:%S}</dcterms:dateSubmitted>\n""", 
+            paper.creationdate, condition=paper.creationdate)
         for note in paper.notes:
             write(f, indent+1, """ <dcterms:isReferencedBy rdf:resource="#{}"/>\n""", note.uuid)
 
@@ -138,34 +145,37 @@ class Exporter:
         write(f, indent, "</foaf:Person>\n")
 
     def output_file(self, out, f, indent=0):
-        if f.exists():
-            """Output a file"""
-            write(out, indent, """<z:Attachment rdf:about="#{}">\n""", f.uuid)
-            write(out, indent+1, """<z:itemType>attachment</z:itemType>\n""")
-            # write(out, indent+1, """<dc:subject>{}</dc:subject>\n""", subject)
-            write(out, indent+1, """<dc:title>{}</dc:title>\n""", f.title, condition=f.title)
-            write(out, indent+1, """<link:type>{}</link:type>\n""", f.mimetype, condition=f.mimetype)
+        if not f.exists():
+            return False
+        
+        """Output a file"""
+        write(out, indent, """<z:Attachment rdf:about="#{}">\n""", f.uuid)
+        write(out, indent+1, """<z:itemType>attachment</z:itemType>\n""")
+        # write(out, indent+1, """<dc:subject>{}</dc:subject>\n""", subject)
+        write(out, indent+1, """<dc:title>{}</dc:title>\n""", f.title, condition=f.title)
+        write(out, indent+1, """<link:type>{}</link:type>\n""", f.mimetype, condition=f.mimetype)
 
 
-            if self.annotate and f.has_externalannotations():
-                uuidpath = RE_FILECHARS.sub("_", f.uuid)
-                path = op.join(self.path, uuidpath + "-" + op.basename(f.path))
-                logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
-                try:
-                    if (not op.exists(path)) or (os.stat(path).st_size == 0):
-                        f.embed_annotations(path)
-                    write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
-                except Exception as e:
-                    if op.exists(path): os.remove(path)
-                    if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
-                        logging.error("Error while annotating (%s): %s", type(e), e)
-                        write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
-                    else:
-                        raise
-                    
-            else:
-                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
-            write(out, indent, """</z:Attachment>\n""")
+        if self.annotate and f.has_externalannotations():
+            uuidpath = RE_FILECHARS.sub("_", f.uuid)
+            path = op.join(self.path, uuidpath + "-" + op.basename(f.path))
+            logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
+            try:
+                if (not op.exists(path)) or (os.stat(path).st_size == 0):
+                    f.embed_annotations(path)
+                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
+            except Exception as e:
+                if op.exists(path): os.remove(path)
+                if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
+                    logging.error("Error while annotating (%s): %s", type(e), e)
+                    write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
+                else:
+                    raise
+                
+        else:
+            write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
+        write(out, indent, """</z:Attachment>\n""")
+        return True
 
     def output_collection(self, collection, f, indent=0):
         _indent = "  " * indent
