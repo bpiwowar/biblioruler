@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import re
 import sys
 import sqlite3
 import argparse
@@ -126,8 +127,15 @@ class Paper(managers.Paper):
         self.papers3 = papers3
 
     def populate(self, row):
+        self.init()
         self.type = Paper.pub_type.get(row["type"], "unknown")
         self.title = row['attributed_title']
+        self.doi = row['doi']
+        if self.doi:
+            self.uri = "papers3://publication/doi/%s" % self.doi
+        else:
+            self.uri = "papers3://publication/uuid/%s" % self.local_uuid
+
 
         date = parse_date(row['publication_date'])
 
@@ -230,14 +238,44 @@ class Papers3(managers.Manager):
         except sqlite3.OperationalError:
             raise ValueError("Invalid Papers3 database")
         self.dbconn.row_factory = dict_factory
+        logging.info("Connected to Papers3 SQL database")
 
-    def get_publication_by_uuid(self, ids, results={}, n=100):
+    def get_publication_by_uuid(self, ids, results=None, n=100):
         """Get a publication by its universal ID"""
         return self.get_publications("uuid", ids, results, n)
 
-    def get_publication_by_id(self, ids, results={}, n=100):
+    def get_publication_by_id(self, ids, results=None, n=100):
         """Get a publication by its internal ID"""
         return self.get_publications("rowid", ids, results, n)
+
+    def get_publication_by_doi(self, ids, results=None, n=100):
+        """Get a publication by its internal ID"""
+        return self.get_publications("doi", ids, results, n)
+
+    def get_publication_by_uri(self, uris, results=None):
+        """Get a publication by its papers URI"""
+        if not results:
+            results = {}
+        re_papers_uri = re.compile("papers[23]://publication/(doi|uuid|livfe)/(.*)")
+        for uri in uris:
+            m = re_papers_uri.match(uri)
+            if m is None:
+                logging.warn("%s is not a Papers3 URI", uri)
+            else:
+                uritype = m.group(1)
+                uriref = m.group(2)
+                logging.debug("Searching for Papers3 publication with key of type %s and value %s", uritype, uriref)
+                if uritype in ("uuid", "doi"):
+                    r = self.get_publications(uritype, [uriref])
+                    if r:
+                        results[uri] = list(r.values())[0]
+                elif uritype == "doi":
+                    pass
+                elif uritype == "livfe":
+                    pass
+                else:
+                    assert False, "URI type %s not handled" % uritype # Should never happen
+        return results
 
     def query_papers_by_citekey(self, citekeys, results={}, n=100):
         return self.get_publications("citekey", citekeys, results, n)
@@ -273,9 +311,9 @@ class Papers3(managers.Manager):
 
 
     PUBLICATION_QUERY = """SELECT publication_date, attributed_title, bundle, volume, number,
-                   startpage, endpage, citekey, editor_string, abbreviation, type, uuid, summary
+                   startpage, endpage, citekey, editor_string, doi, abbreviation, type, uuid, summary
                    FROM Publication"""
-    def get_publications(self, key, values, results={}, n=100):
+    def get_publications(self, key, values, results=None, n=100):
         """Returns summary information for each paper matched to papers.
 
         The returned object is a `dict` keyed on the citekey for each paper,
@@ -296,6 +334,8 @@ class Papers3(managers.Manager):
         """
         query = """%s WHERE %%s IN (%%s)""" % Papers3.PUBLICATION_QUERY
         c = self.dbconn.cursor()
+        if not results:
+            results = {}
         while len(values) > 0:
             take = min(len(values), n)
             cites = ['"%s"' % x for x in values[0:take]]
