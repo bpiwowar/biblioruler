@@ -15,9 +15,13 @@ What is imported:
 - Keywords and Note
 - PDF and their annotations
 
-## Papers (broken)
+## Papers 3 (unknown status)
 
 The code has not been updated for a while, so it might or might not work
+
+## Zotero 5 
+
+Basic support (to retrieve papers) 
 
 ## Supported output
 
@@ -41,13 +45,7 @@ where `basename` is the name the folder where PDF will be stored, and also the b
 
 The underlying model for references is [the PURL schema](http://vocab.org/biblio/schema)
 
-
 Other resources:
 
 - [CSL Schema](https://github.com/citation-style-language/schema/raw/master/csl-data.json)
 - [Mapping between Zotero and CSL](http://aurimasv.github.io/z2csl/typeMap.xml)
-
-# Roadmap
-
-1. Use pypothesis to sync annotations
-1. (maybe) Synchronize different bibliography softwares
