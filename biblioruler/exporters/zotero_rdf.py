@@ -114,6 +114,9 @@ class Exporter:
         for keyword in paper.keywords:
             write(f, indent+1, """<dc:subject>{}</dc:subject>""", escape(keyword))
 
+        if paper.read:
+            write(f, indent+1, """<dc:subject>#read</dc:subject>""")
+
         if paper.container is not None:
             if self.embed_container:
                 write(f, indent+1, """<dcterms:isPartOf>\n""")
