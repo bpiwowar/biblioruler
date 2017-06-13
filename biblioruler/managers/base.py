@@ -47,7 +47,7 @@ class Object:
             return False
 
         if self.surrogate:
-            logging.debug("Retrieving surrogate %s [access to %s]\n" % (self.uuid, name))
+            logging.debug("Retrieving surrogate %s [access to %s]" % (self.uuid, name))
             self._retrieve()
             self.surrogate = False
             return getattr(self, name)
@@ -81,7 +81,13 @@ class Note(Object):
     
 
 class Paper(Object):
-    """A paper"""
+    """A paper
+    
+    The following fields are present:
+    - authors : a list of authors
+    - files : the attached files
+    - keywords : the set of keywords
+    """
     def __init__(self, uuid, surrogate=True):
         super().__init__(uuid, surrogate)
         self.local_uuid = uuid
@@ -96,6 +102,9 @@ class Paper(Object):
         self.container = None
         self.month = None
         self.year = None
+        self.read = False
+        self.uri = None
+        self.doi = None
 
         # When the paper was added to the library
         self.creationdate = None
