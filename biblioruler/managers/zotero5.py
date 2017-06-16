@@ -2,6 +2,7 @@
 
 import biblioruler.managers.base as managers
 from sqlalchemy.orm import scoped_session, sessionmaker
+import html.parser
 
 from dateutil import parser as dtparser
 from urllib.parse import unquote
@@ -16,7 +17,6 @@ import os.path as op
 import logging
 import platform
 import datetime as dt
-
 
 from sqlalchemy import create_engine
 import biblioruler.managers.db.zotero5 as dbz
@@ -69,9 +69,13 @@ def defaults():
     return DEFAULTS
 
 
-
-
 # --- Resources 
+
+@Resource(urn="zotero:note")
+class Note(managers.Note):
+    """A note"""
+    def __init__(self, note: dbz.ItemNote):
+        super().__init__(self, note.itemID, html=note.note)
 
 @Resource(urn="zotero:paper")
 class Paper(managers.Paper):
@@ -89,13 +93,9 @@ class Paper(managers.Paper):
         self.title = values.get("title", None)
         self.uri = "zotero://select/items/1_%s" % self.local_uuid
 
+        self.notes = [Note(note) for note in item.notes]
+
         self.surrogate = False
-
-
-@Resource(urn="zotero")
-class Note(managers.Note):
-    """An author"""
-    pass
 
 @Resource(urn="zotero")
 class Author(managers.Author):
@@ -109,7 +109,8 @@ class Manager(managers.Manager):
         """Initialize the manager"""
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = dbpath
-        self.engine = create_engine(u'sqlite:////%s' % dbpath)
+        
+        self.engine = create_engine(u'sqlite:////%s' % dbpath, { "mode": "ro"})
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
 
@@ -122,6 +123,27 @@ class Manager(managers.Manager):
 
     def collections(self):
         return None
+
+    def get_item_by_key(self, key):
+        item = self.session.query(dbz.Item).filter(dbz.Item.key == key).one()
+        return item
+
+    def get_publication_by_uri(self, uri):
+        re_papers_uri = re.compile(r"^zotero://select/items/\d+_(.*)$")
+        m = re_papers_uri.match(uri)
+        if m is None:
+            logging.warn("%s is not a Zotero URI", uri)
+            return None
+        else:
+            uriref = m.group(1)
+            logging.debug("Searching for Zotero publication with UUID %s", uriref)
+            item = self.session.query(dbz.Item)\
+                .outerjoin(dbz.DeletedItem)\
+                .filter(dbz.DeletedItem.itemID == None)\
+                .filter(dbz.Item.key == uriref)\
+                .one()
+
+            return Paper(self, item.key)
 
     def find_by(self, key, value):
         query = self.session.query(dbz.ItemData, dbz.Item)\

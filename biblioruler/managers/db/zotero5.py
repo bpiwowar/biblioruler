@@ -423,7 +423,7 @@ class ItemAttachment(Base):
     __tablename__ = 'itemAttachments'
 
     itemID = Column(ForeignKey('items.itemID', ondelete='CASCADE'), primary_key=True)
-    parentItemID = Column(Integer, index=True)
+    parentItemID = Column(ForeignKey('items.itemID'), index=True)
     linkMode = Column(Integer)
     contentType = Column(Text, index=True)
     charsetID = Column(ForeignKey('charsets.charsetID', ondelete='SET NULL'), index=True)
@@ -431,6 +431,8 @@ class ItemAttachment(Base):
     syncState = Column(Integer, index=True, server_default=FetchedValue())
     storageModTime = Column(Integer)
     storageHash = Column(Text)
+
+    parent = relationship('Item', foreign_keys=[parentItemID], backref="attachments")
 
     # charset = relationship('Charset', primaryjoin='ItemAttachment.charsetID == Charset.charsetID', backref='item_attachments')
     # item = relationship(Item, primaryjoin='ItemAttachment.parentItemID == Item.itemID', backref='item_children')
@@ -440,11 +442,11 @@ class ItemNote(Base):
     __tablename__ = 'itemNotes'
 
     itemID = Column(ForeignKey('items.itemID', ondelete='CASCADE'), primary_key=True)
-    parentItemID = Column(Integer, index=True)
+    parentItemID = Column(ForeignKey('items.itemID'), index=True)
     note = Column(Text)
     title = Column(Text)
 
-    # item = relationship('Item', foreign_keys=[parentItemID])
+    parentItem = relationship('Item', foreign_keys=[parentItemID], backref="notes")
 
 
 class Library(Base):
