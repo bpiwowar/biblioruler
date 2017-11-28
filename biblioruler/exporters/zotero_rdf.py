@@ -172,17 +172,24 @@ class Exporter:
             path = op.join(self.path, uuidpath + "-" + op.basename(f.path))
             logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
             try:
+                # Write annotations
                 if (not op.exists(path)) or (os.stat(path).st_size == 0):
                     f.embed_annotations(path)
+                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
             except Exception as e:
-                if op.exists(path): os.remove(path)
+                # Something went wrong
+
+                # First remove the file
+                if op.exists(path): 
+                    os.remove(path)
+
+                # Handle gracefully for some errors
                 if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
                     logging.error("Error while annotating (%s): %s", type(e), e)
                     write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
                 else:
                     raise        
 
-        write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
         write(out, indent, """</z:Attachment>\n""")
 
         return True

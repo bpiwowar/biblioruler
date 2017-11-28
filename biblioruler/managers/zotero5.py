@@ -63,6 +63,8 @@ def defaults():
                 elif m.group(1) == "extensions.zotero.dataDir":
                     DEFAULTS["dataDir"] = m.group(2)
 
+    if "baseAttachmentPath" not in DEFAULTS:
+        DEFAULTS["baseAttachmentPath"] = os.path.join(DEFAULTS["dataDir"], "storage")
     DEFAULTS["dbpath"] = os.path.join(DEFAULTS["dataDir"], "zotero.sqlite")
     logging.info("Zotero default: %s", DEFAULTS)
 
