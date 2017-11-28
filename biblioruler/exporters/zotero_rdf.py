@@ -161,7 +161,7 @@ class Exporter:
         write(out, indent, """<z:Attachment rdf:about="#{}">\n""", f.uuid)
         write(out, indent+1, """<z:itemType>attachment</z:itemType>\n""")
         # write(out, indent+1, """<dc:subject>{}</dc:subject>\n""", subject)
-        write(out, indent+1, """<dc:title>{}</dc:title>\n""", f.title, condition=f.title)
+        write(out, indent+1, """<dc:title>{}</dc:title>\n""", escape(f.title), condition=f.title)
         write(out, indent+1, """<link:type>{}</link:type>\n""", f.mimetype, condition=f.mimetype)
 
         path = f.path
@@ -197,7 +197,7 @@ class Exporter:
     def output_collection(self, collection, f, indent=0):
         _indent = "  " * indent
         write(f, indent, """<z:Collection rdf:about="#{}">\n""", collection.uuid)
-        write(f, indent + 1, """<dc:title>{}</dc:title>\n""", collection.name)
+        write(f, indent + 1, """<dc:title>{}</dc:title>\n""", escape(collection.name))
 
         for c in collection.children:
             write(f, indent + 1, """<dcterms:hasPart rdf:resource="#{}"/>\n""", c.uuid)
