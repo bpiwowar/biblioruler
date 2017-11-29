@@ -113,13 +113,13 @@ class Exporter:
                 escape(paper.abstract), condition=paper.abstract)
 
         if paper.volume is not None:
-            write(f, indent+1, """<prism:volume>{}</prism:volume>\n""", paper.volume)
+            write(f, indent+1, """<prism:volume>{}</prism:volume>\n""", escape(paper.volume))
         if paper.volume is not None:
-            write(f, indent+1, """<prism:number>{}</prism:number>\n""", paper.number)
+            write(f, indent+1, """<prism:number>{}</prism:number>\n""", escape(paper.number))
         if paper.doi is not None:
-            write(f, indent+1, """<dc:identifier>DOI {}</dc:identifier>\n""", paper.doi)
+            write(f, indent+1, """<dc:identifier>DOI {}</dc:identifier>\n""", escape(paper.doi))
         if paper.pages is not None:
-            write(f, indent+1, """<bib:pages>{}</bib:pages>\n""", paper.pages)
+            write(f, indent+1, """<bib:pages>{}</bib:pages>\n""", escape(paper.pages))
 
         for attachment in attachments:
             write(f, indent+1, """<link:link rdf:resource="#{}"/>\n""", escape(attachment))
