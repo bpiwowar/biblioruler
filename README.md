@@ -1,35 +1,56 @@
-The goal of this project is to create a common interface to the different bibliography managers, allowing to easily import bibliographies from Mendeley, Papers 3, or Zotero and 
+The goal of this project is to create a common interface to the different bibliography managers, allowing to easily import bibliographies from Mendeley, Papers 3, or Zotero. One of the main objective is to switch as easily as possible from one to the other.
 
-1. Export them to native formats (e.g. Zotero RDF) that can be imported without loss
+Please see below for the status of the different importers and exporters.
 
 # Current conversions
 
 ## Supported Inputs
 
-## Mendeley
+### Mendeley
 
 What is imported:
 
-- Title, year, authors
-- Conference title, 
-- Keywords and Note
+- title
+- year
+- authors
+- conference/journal title
+- keywords
+- note
+- volume
+- pages
+- DOI
 - PDF and their annotations
+- collections (folders)
 
-## Papers 3 (unknown status)
+### Papers 3 (unknown status)
 
 The code has not been updated for a while, so it might or might not work
 
-## Zotero 5 
+### Zotero 5 
 
 Basic support (to retrieve papers) 
 
 ## Supported output
 
+
 ### Annotated PDF using PyPDF2
 
 ### Zotero RDF
 
-Zotero RDF export is almost functional. I advice you test it by using a test profile in Zotero, to check first if everything is going well, before importing it in your main library.
+Zotero RDF export is functional. I advice you test it by using a test profile in Zotero, to check first if everything is going well, before importing it in your main library. 
+Supported fields:
+
+- title
+- conference/journal title
+- authors
+- DOI
+- volume
+- number
+- pages
+- keywords (tags)
+- notes
+- collections
+
 
 # Exemples
 
