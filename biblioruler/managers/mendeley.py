@@ -39,6 +39,13 @@ def defaults():
 @Resource(urn="mendeley:paper")
 class Paper(managers.Paper):
     """A Mendeley paper"""
+
+    """Base query to retrieve a publication
+    
+    When populating paper fields, the fields that begin by __ are not added
+    automatically (e.g. __uuid will be processed differently), while the others
+    are accessible right away (e.g. issn).
+    """
     BASE_QUERY = """SELECT d.uuid as __uuid, d.type as __type, d.id, d.userType as __userType, 
                 d.publication as __publication, d.note as __note, d.added as __added,
                 d.title, d.issn, d.isbn, d.year, d.month, d.pages, d.pmid, d.doi,
@@ -70,9 +77,9 @@ class Paper(managers.Paper):
         self.manager = manager
 
     def populate(self, row):
+        """Populate from DB"""
         self.init()
 
-        """Populate from DB"""
         for key, value in row.items():
             if not key.startswith("__"):
                 setattr(self, key, value)

@@ -47,6 +47,9 @@ RE_FILECHARS = re.compile(r"""[/:\-"']""")
 
 
 class Exporter:
+    """The exporter is created by using the static create method. Export
+    begins by calling the export method."""
+
     def __init__(self):
         """Initalize the exporter
         """
@@ -56,6 +59,7 @@ class Exporter:
         self.overwrite = False
 
     def export(self, path, publications, collections):
+        """Outputs papers and collections using Zotero RDF"""
         self.path = path
 
         if self.annotate:
@@ -108,11 +112,21 @@ class Exporter:
             write(f, indent+1, """<dcterms:abstract>{}</dcterms:abstract>\n""", 
                 escape(paper.abstract), condition=paper.abstract)
 
+        if paper.volume is not None:
+            write(f, indent+1, """<prism:volume>{}</prism:volume>\n""", paper.volume)
+        if paper.volume is not None:
+            write(f, indent+1, """<prism:number>{}</prism:number>\n""", paper.number)
+        if paper.doi is not None:
+            write(f, indent+1, """<dc:identifier>DOI {}</dc:identifier>\n""", paper.doi)
+        if paper.pages is not None:
+            write(f, indent+1, """<bib:pages>{}</bib:pages>\n""", paper.pages)
+
         for attachment in attachments:
             write(f, indent+1, """<link:link rdf:resource="#{}"/>\n""", escape(attachment))
 
         for keyword in paper.keywords:
             write(f, indent+1, """<dc:subject>{}</dc:subject>""", escape(keyword))
+            
 
         if paper.read:
             write(f, indent+1, """<dc:subject>#read</dc:subject>""")

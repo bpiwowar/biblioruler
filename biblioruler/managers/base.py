@@ -105,6 +105,8 @@ class Paper(Object):
         self.read = False
         self.uri = None
         self.doi = None
+        self.volume = None
+        self.pages = None
 
         # When the paper was added to the library
         self.creationdate = None
