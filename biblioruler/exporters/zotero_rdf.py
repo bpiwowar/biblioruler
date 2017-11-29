@@ -164,18 +164,18 @@ class Exporter:
         write(out, indent+1, """<dc:title>{}</dc:title>\n""", escape(f.title), condition=f.title)
         write(out, indent+1, """<link:type>{}</link:type>\n""", f.mimetype, condition=f.mimetype)
 
+        # By default, path is original file path
         path = f.path
 
         # Convert if needed
         if self.annotate and f.has_externalannotations():
             uuidpath = RE_FILECHARS.sub("_", f.uuid)
             path = op.join(self.path, uuidpath + "-" + op.basename(f.path))
-            logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
             try:
+                logging.debug("Writing annotated PDF [%s] from [%s]", path, f.path)
                 # Write annotations
                 if (not op.exists(path)) or (os.stat(path).st_size == 0):
                     f.embed_annotations(path)
-                write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
             except Exception as e:
                 # Something went wrong
 
@@ -186,9 +186,11 @@ class Exporter:
                 # Handle gracefully for some errors
                 if isinstance(e, PyPDF2.utils.PdfReadError) or isinstance(e, IOError):
                     logging.error("Error while annotating (%s): %s", type(e), e)
-                    write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(f.path))
+                    path = f.path
                 else:
                     raise        
+        
+        write(out, indent+1, """<rdf:resource rdf:resource="{}"/>\n""", escape(path))
 
         write(out, indent, """</z:Attachment>\n""")
 
