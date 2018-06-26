@@ -54,7 +54,7 @@ def defaults():
     # Read preferences
     prefs = os.path.join(profilepath, "prefs.js")
     re_pref = re.compile(r"""user_pref\("([^"]+)", "([^"]+)"\)""")
-    with open(prefs, "rt") as pfh:
+    with open(prefs, "rt", errors="ignore") as pfh:
         for line in pfh:
             m = re_pref.match(line)
             if m is not None:
