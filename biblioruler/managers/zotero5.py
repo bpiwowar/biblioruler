@@ -110,16 +110,18 @@ class Author(managers.Author):
     """An author"""
     pass
 
-
 class Manager(managers.Manager):
+    def connect(self):
+        # Read only connect
+        return sqlite3.connect('file:%s?mode=ro' % self.dbpath , uri=True)
+
     """zotero manager"""
     def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["baseAttachmentPath"]):
         """Initialize the manager"""
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = dbpath
         
-        self.engine = create_engine(u'sqlite:////%s' % dbpath, execution_options={
-            "mode" : "ro"})
+        self.engine = create_engine(u'sqlite://', creator=self.connect)
         # options={ "mode": "ro"})
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
