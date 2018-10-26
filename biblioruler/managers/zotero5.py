@@ -37,8 +37,14 @@ def defaults():
 
     DEFAULTS = { }
 
-    if platform.system() == "Darwin":
+    system = platform.system()
+    if system == "Darwin":
         mainpath = os.path.expanduser("~/Library/Application Support/Zotero")
+    elif system == "Linux":
+        mainpath = os.path.expanduser("~/.zotero/zotero")
+    else:
+        raise Exception("No zotero path defined for %s" % platform.system())
+        
 
     inipath = os.path.join(mainpath, "profiles.ini")
     logging.info("Reading %s", inipath)
@@ -112,7 +118,9 @@ class Manager(managers.Manager):
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = dbpath
         
-        self.engine = create_engine(u'sqlite:////%s' % dbpath, { "mode": "ro"})
+        self.engine = create_engine(u'sqlite:////%s' % dbpath, execution_options={
+            "mode" : "ro"})
+        # options={ "mode": "ro"})
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
 
