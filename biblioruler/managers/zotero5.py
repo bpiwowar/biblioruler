@@ -83,7 +83,9 @@ def defaults():
 class Note(managers.Note):
     """A note"""
     def __init__(self, note: dbz.ItemNote):
-        super().__init__(self, note.itemID, html=note.note)
+        super().__init__(self, note.itemID, title=note.title, html=note.note)
+    
+    
 
 @Resource(urn="zotero:paper")
 class Paper(managers.Paper):
@@ -93,7 +95,11 @@ class Paper(managers.Paper):
         self.manager = manager
 
     def _retrieve(self):
-        self.populate(self.manager.session.query(dbz.Item).filter(dbz.Item.key == self.local_uuid).one())
+        try:
+            self.populate(self.manager.session.query(dbz.Item).filter(dbz.Item.key == self.local_uuid).one())
+        except:
+            logging.exception("Could not retrieve item %s", self.local_uuid)
+            raise
 
     def populate(self, item):
         self.init()
@@ -121,7 +127,7 @@ class Manager(managers.Manager):
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = dbpath
         
-        self.engine = create_engine(u'sqlite://', creator=self.connect)
+        self.engine = create_engine(u'sqlite://', creator=self.connect, connect_args={'readonly': True})
         # options={ "mode": "ro"})
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
@@ -137,8 +143,10 @@ class Manager(managers.Manager):
         return None
 
     def get_item_by_key(self, key):
-        item = self.session.query(dbz.Item).filter(dbz.Item.key == key).one()
-        return item
+        return Paper(self, key)
+
+    def get_paper_by_key(self, key):
+        return Paper(self, key)
 
     def get_publication_by_uri(self, uri):
         re_papers_uri = re.compile(r"^zotero://select/items/\d+_(.*)$")

@@ -8,4 +8,7 @@ setup(name='biblioruler',
       author='Benjamin Piwowarski',
       author_email='benjamin@bpiwowar.net',
       url='https://github.com/bpiwowar/biblioruler',
+      install_requires = [
+            "beautifulsoup4"
+      ]
 )

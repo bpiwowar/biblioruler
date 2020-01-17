@@ -5,7 +5,7 @@
 import logging
 import os.path as op
 import os
-
+from bs4 import BeautifulSoup
 
 """All the types that can be taken by a paper"""
 types = set(["article", "article-journal", "article-magazine", "article-newspaper",
@@ -66,10 +66,11 @@ class Object:
         return None
 
 class Note(Object):
-    def __init__(self, uuid, text=None, html=None, surrogate=True):
+    def __init__(self, uuid, text=None, html=None, title=None, surrogate=True):
         Object.__init__(self, uuid, surrogate=surrogate)
         self._text = text
         self._html = html
+        self.title = title
     
     @property
     def html(self):
@@ -77,6 +78,8 @@ class Note(Object):
     
     @property
     def text(self):
+        if self._text is None and self._html:
+            self._text = BeautifulSoup(self._html).get_text()
         return self._text
     
 
