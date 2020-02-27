@@ -1,5 +1,7 @@
 # zotero SQL backend
 
+from pathlib import Path
+
 import biblioruler.managers.base as managers
 from sqlalchemy.orm import scoped_session, sessionmaker
 import html.parser
@@ -119,13 +121,19 @@ class Author(managers.Author):
 class Manager(managers.Manager):
     def connect(self):
         # Read only connect
-        return sqlite3.connect('file:%s?mode=ro' % self.dbpath , uri=True)
+        return sqlite3.connect('file:%s?mode=ro' % self.ro_dbpath , uri=True)
 
     """zotero manager"""
-    def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["baseAttachmentPath"]):
+    def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["baseAttachmentPath"], copy=True):
         """Initialize the manager"""
         managers.Manager.__init__(self, None, surrogate=False)
-        self.dbpath = dbpath
+        self.dbpath = Path(dbpath)
+        self.ro_dbpath = self.dbpath
+
+        if copy:
+            import shutil
+            self.ro_dbpath = self.dbpath.with_suffix(".ro.sql")
+            shutil.copyfile(dbpath, self.ro_dbpath)
         
         self.engine = create_engine(u'sqlite://', creator=self.connect, connect_args={'readonly': True})
         # options={ "mode": "ro"})
