@@ -25,8 +25,8 @@ THE SOFTWARE.
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.request, urllib.parse, urllib.error
 
-class Base(BaseHTTPRequestHandler):
 
+class Base(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.oauth_server = oauth.OAuthServer(MockOAuthDataStore())
         self.oauth_server.add_signature_method(oauth.OAuthSignatureMethod_PLAINTEXT())
@@ -45,19 +45,21 @@ class Base(BaseHTTPRequestHandler):
     def do_GET(self):
 
         # debug info
-        #print self.command, self.path, self.headers
+        # print self.command, self.path, self.headers
 
         # get the post data (if any)
         postdata = None
-        if self.command == 'POST':
+        if self.command == "POST":
             try:
-                length = int(self.headers.getheader('content-length'))
+                length = int(self.headers.getheader("content-length"))
                 postdata = self.rfile.read(length)
             except:
                 pass
 
         # construct the oauth request from the request parameters
-        oauth_request = oauth.OAuthRequest.from_request(self.command, self.path, headers=self.headers, query_string=postdata)
+        oauth_request = oauth.OAuthRequest.from_request(
+            self.command, self.path, headers=self.headers, query_string=postdata
+        )
 
         # request token
         if self.path.startswith(REQUEST_TOKEN_URL):
@@ -65,7 +67,7 @@ class Base(BaseHTTPRequestHandler):
                 # create a request token
                 token = self.oauth_server.fetch_request_token(oauth_request)
                 # send okay response
-                self.send_response(200, 'OK')
+                self.send_response(200, "OK")
                 self.end_headers()
                 # return the token
                 self.wfile.write(token.to_string())
@@ -82,7 +84,7 @@ class Base(BaseHTTPRequestHandler):
                 token = self.oauth_server.authorize_token(token, None)
                 token.set_verifier(VERIFIER)
                 # send okay response
-                self.send_response(200, 'OK')
+                self.send_response(200, "OK")
                 self.end_headers()
                 # return the callback url (to show server has it)
                 self.wfile.write(token.get_callback_url())
@@ -96,7 +98,7 @@ class Base(BaseHTTPRequestHandler):
                 # create an access token
                 token = self.oauth_server.fetch_access_token(oauth_request)
                 # send okay response
-                self.send_response(200, 'OK')
+                self.send_response(200, "OK")
                 self.end_headers()
                 # return the token
                 self.wfile.write(token.to_string())
@@ -108,9 +110,11 @@ class Base(BaseHTTPRequestHandler):
         if self.path.startswith(RESOURCE_URL):
             try:
                 # verify the request has been oauth authorized
-                consumer, token, params = self.oauth_server.verify_request(oauth_request)
+                consumer, token, params = self.oauth_server.verify_request(
+                    oauth_request
+                )
                 # send okay response
-                self.send_response(200, 'OK')
+                self.send_response(200, "OK")
                 self.end_headers()
                 # return the extra parameters - just for something to return
                 self.wfile.write(str(params))
@@ -123,9 +127,8 @@ class Base(BaseHTTPRequestHandler):
 
     def main(wait):
         try:
-            server = HTTPServer(('', 8080), RequestHandler)
-            print('Test server running...')
+            server = HTTPServer(("", 8080), RequestHandler)
+            print("Test server running...")
             server.serve_forever()
         except KeyboardInterrupt:
             server.socket.close()
-

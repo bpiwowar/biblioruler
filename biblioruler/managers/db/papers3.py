@@ -10,7 +10,7 @@ metadata = Base.metadata
 
 
 class Annotation(Base):
-    __tablename__ = 'Annotation'
+    __tablename__ = "Annotation"
 
     ROWID = Column(Integer, primary_key=True)
     color = Column(Integer)
@@ -26,7 +26,7 @@ class Annotation(Base):
     hidden = Column(Integer)
     is_mine = Column(Integer)
     left = Column(Float)
-    object_id = Column(ForeignKey('PDF.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("PDF.uuid", ondelete="CASCADE"), index=True)
     page_nr = Column(Integer, index=True)
     path = Column(Text)
     position = Column(Text)
@@ -49,11 +49,13 @@ class Annotation(Base):
     uuid = Column(Text, nullable=False, unique=True)
     width = Column(Float)
 
-    object = relationship('PDF', primaryjoin='Annotation.object_id == PDF.uuid', backref='annotations')
+    object = relationship(
+        "PDF", primaryjoin="Annotation.object_id == PDF.uuid", backref="annotations"
+    )
 
 
 class Author(Base):
-    __tablename__ = 'Author'
+    __tablename__ = "Author"
 
     ROWID = Column(Integer, primary_key=True)
     affiliation = Column(Text, index=True)
@@ -90,13 +92,13 @@ class Author(Base):
 
 
 class Bookmark(Base):
-    __tablename__ = 'Bookmark'
+    __tablename__ = "Bookmark"
 
     ROWID = Column(Integer, primary_key=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
     page_nr = Column(Integer, index=True)
-    pdf_id = Column(ForeignKey('PDF.uuid', ondelete='CASCADE'), index=True)
+    pdf_id = Column(ForeignKey("PDF.uuid", ondelete="CASCADE"), index=True)
     position = Column(Text)
     title = Column(Text)
     type = Column(Integer, index=True)
@@ -104,11 +106,13 @@ class Bookmark(Base):
     uuid = Column(Text, nullable=False, unique=True)
     zoomfactor = Column(Float)
 
-    pdf = relationship('PDF', primaryjoin='Bookmark.pdf_id == PDF.uuid', backref='bookmarks')
+    pdf = relationship(
+        "PDF", primaryjoin="Bookmark.pdf_id == PDF.uuid", backref="bookmarks"
+    )
 
 
 class Citation(Base):
-    __tablename__ = 'Citation'
+    __tablename__ = "Citation"
 
     ROWID = Column(Integer, primary_key=True)
     citekey = Column(Text, index=True)
@@ -118,27 +122,31 @@ class Citation(Base):
     extensible_properties = Column(LargeBinary)
     flagged = Column(Integer)
     is_mine = Column(Integer)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='NO ACTION'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="NO ACTION"), index=True)
     priority = Column(Integer, index=True)
     privacy_level = Column(Integer)
     type = Column(Integer, index=True)
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    object = relationship('Publication', primaryjoin='Citation.object_id == Publication.uuid', backref='citations')
+    object = relationship(
+        "Publication",
+        primaryjoin="Citation.object_id == Publication.uuid",
+        backref="citations",
+    )
 
 
 class CitationItem(Base):
-    __tablename__ = 'CitationItem'
+    __tablename__ = "CitationItem"
 
     ROWID = Column(Integer, primary_key=True)
-    citation = Column(ForeignKey('Citation.uuid', ondelete='NO ACTION'), index=True)
+    citation = Column(ForeignKey("Citation.uuid", ondelete="NO ACTION"), index=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
     locator = Column(Text)
     locator_type = Column(Integer, index=True)
     notes = Column(Text)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='NO ACTION'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="NO ACTION"), index=True)
     prefix = Column(Text)
     priority = Column(Integer, index=True)
     show_authors = Column(Integer)
@@ -147,12 +155,20 @@ class CitationItem(Base):
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    Citation = relationship('Citation', primaryjoin='CitationItem.citation == Citation.uuid', backref='citation_items')
-    object = relationship('Publication', primaryjoin='CitationItem.object_id == Publication.uuid', backref='citation_items')
+    Citation = relationship(
+        "Citation",
+        primaryjoin="CitationItem.citation == Citation.uuid",
+        backref="citation_items",
+    )
+    object = relationship(
+        "Publication",
+        primaryjoin="CitationItem.object_id == Publication.uuid",
+        backref="citation_items",
+    )
 
 
 class Collection(Base):
-    __tablename__ = 'Collection'
+    __tablename__ = "Collection"
 
     ROWID = Column(Integer, primary_key=True)
     collection_description = Column(Text)
@@ -162,7 +178,7 @@ class Collection(Base):
     extensible_properties = Column(LargeBinary)
     icon_name = Column(Text)
     name = Column(Text, index=True)
-    parent = Column(ForeignKey('Collection.uuid', ondelete='CASCADE'), index=True)
+    parent = Column(ForeignKey("Collection.uuid", ondelete="CASCADE"), index=True)
     priority = Column(Integer, index=True)
     privacy_level = Column(Integer)
     type = Column(Integer, index=True)
@@ -170,29 +186,42 @@ class Collection(Base):
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    parent1 = relationship('Collection', remote_side=[ROWID], primaryjoin='Collection.parent == Collection.uuid', backref='collections')
+    parent1 = relationship(
+        "Collection",
+        remote_side=[ROWID],
+        primaryjoin="Collection.parent == Collection.uuid",
+        backref="collections",
+    )
 
 
 class CollectionItem(Base):
-    __tablename__ = 'CollectionItem'
+    __tablename__ = "CollectionItem"
 
     ROWID = Column(Integer, primary_key=True)
-    collection = Column(ForeignKey('Collection.uuid', ondelete='CASCADE'), index=True)
+    collection = Column(ForeignKey("Collection.uuid", ondelete="CASCADE"), index=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
     priority = Column(Integer, index=True)
     privacy_level = Column(Integer)
     type = Column(Integer, index=True)
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    Collection = relationship('Collection', primaryjoin='CollectionItem.collection == Collection.uuid', backref='collection_items')
-    object = relationship('Publication', primaryjoin='CollectionItem.object_id == Publication.uuid', backref='collection_items')
+    Collection = relationship(
+        "Collection",
+        primaryjoin="CollectionItem.collection == Collection.uuid",
+        backref="collection_items",
+    )
+    object = relationship(
+        "Publication",
+        primaryjoin="CollectionItem.object_id == Publication.uuid",
+        backref="collection_items",
+    )
 
 
 class Keyword(Base):
-    __tablename__ = 'Keyword'
+    __tablename__ = "Keyword"
 
     ROWID = Column(Integer, primary_key=True)
     canonical_name = Column(Text, index=True)
@@ -201,37 +230,50 @@ class Keyword(Base):
     extensible_properties = Column(LargeBinary)
     is_mine = Column(Integer)
     name = Column(Text, index=True)
-    parent = Column(ForeignKey('Keyword.uuid', ondelete='CASCADE'), index=True)
+    parent = Column(ForeignKey("Keyword.uuid", ondelete="CASCADE"), index=True)
     publication_count = Column(Integer, index=True)
     searchresult = Column(Integer)
     type = Column(Integer, index=True)
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    parent1 = relationship('Keyword', remote_side=[ROWID], primaryjoin='Keyword.parent == Keyword.uuid', backref='keywords')
+    parent1 = relationship(
+        "Keyword",
+        remote_side=[ROWID],
+        primaryjoin="Keyword.parent == Keyword.uuid",
+        backref="keywords",
+    )
 
 
 class KeywordItem(Base):
-    __tablename__ = 'KeywordItem'
+    __tablename__ = "KeywordItem"
 
     ROWID = Column(Integer, primary_key=True)
     assigned_by = Column(Text, index=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
-    keyword_id = Column(ForeignKey('Keyword.uuid', ondelete='CASCADE'), index=True)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
+    keyword_id = Column(ForeignKey("Keyword.uuid", ondelete="CASCADE"), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
     priority = Column(Integer, index=True)
     privacy_level = Column(Integer)
     type = Column(Integer, index=True)
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    keyword = relationship('Keyword', primaryjoin='KeywordItem.keyword_id == Keyword.uuid', backref='keyword_items')
-    object = relationship('Publication', primaryjoin='KeywordItem.object_id == Publication.uuid', backref='keyword_items')
+    keyword = relationship(
+        "Keyword",
+        primaryjoin="KeywordItem.keyword_id == Keyword.uuid",
+        backref="keyword_items",
+    )
+    object = relationship(
+        "Publication",
+        primaryjoin="KeywordItem.object_id == Publication.uuid",
+        backref="keyword_items",
+    )
 
 
 class LocalMetadatum(Base):
-    __tablename__ = 'LocalMetadata'
+    __tablename__ = "LocalMetadata"
 
     ROWID = Column(Integer, primary_key=True)
     data = Column(LargeBinary)
@@ -241,52 +283,65 @@ class LocalMetadatum(Base):
 
 
 t_Metadata = Table(
-    'Metadata', metadata,
-    Column('uuid', Text, nullable=False, unique=True),
-    Column('data', LargeBinary),
-    Column('key', Text, index=True),
-    Column('value', Text)
+    "Metadata",
+    metadata,
+    Column("uuid", Text, nullable=False, unique=True),
+    Column("data", LargeBinary),
+    Column("key", Text, index=True),
+    Column("value", Text),
 )
 
 
 class NameVariant(Base):
-    __tablename__ = 'NameVariant'
+    __tablename__ = "NameVariant"
 
     ROWID = Column(Integer, primary_key=True)
     canonical_name = Column(Text, index=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
     name = Column(Text, index=True)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
     preferred = Column(Integer)
     priority = Column(Integer, index=True)
     type = Column(Integer, index=True)
     updated_at = Column(Float)
     uuid = Column(Text, nullable=False, unique=True)
 
-    object = relationship('Publication', primaryjoin='NameVariant.object_id == Publication.uuid', backref='name_variants')
+    object = relationship(
+        "Publication",
+        primaryjoin="NameVariant.object_id == Publication.uuid",
+        backref="name_variants",
+    )
 
 
 class OrderedAuthor(Base):
-    __tablename__ = 'OrderedAuthor'
+    __tablename__ = "OrderedAuthor"
 
     ROWID = Column(Integer, primary_key=True)
-    author_id = Column(ForeignKey('Author.uuid', ondelete='RESTRICT'), index=True)
+    author_id = Column(ForeignKey("Author.uuid", ondelete="RESTRICT"), index=True)
     created_at = Column(Float, index=True)
     extensible_properties = Column(LargeBinary)
     is_primary = Column(Integer)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
     priority = Column(Integer, index=True)
     type = Column(Integer, index=True)
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    author = relationship('Author', primaryjoin='OrderedAuthor.author_id == Author.uuid', backref='ordered_authors')
-    object = relationship('Publication', primaryjoin='OrderedAuthor.object_id == Publication.uuid', backref='ordered_authors')
+    author = relationship(
+        "Author",
+        primaryjoin="OrderedAuthor.author_id == Author.uuid",
+        backref="ordered_authors",
+    )
+    object = relationship(
+        "Publication",
+        primaryjoin="OrderedAuthor.object_id == Publication.uuid",
+        backref="ordered_authors",
+    )
 
 
 class PDF(Base):
-    __tablename__ = 'PDF'
+    __tablename__ = "PDF"
 
     ROWID = Column(Integer, primary_key=True)
     caption = Column(Text)
@@ -299,7 +354,7 @@ class PDF(Base):
     mime_type = Column(Text, index=True)
     missing = Column(Integer)
     needs_ocr = Column(Integer)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
     original_path = Column(Text)
     pages = Column(Integer)
     path = Column(Text, index=True)
@@ -311,11 +366,13 @@ class PDF(Base):
     uuid = Column(Text, nullable=False, unique=True)
     view_settings = Column(LargeBinary)
 
-    object = relationship('Publication', primaryjoin='PDF.object_id == Publication.uuid', backref='pdfs')
+    object = relationship(
+        "Publication", primaryjoin="PDF.object_id == Publication.uuid", backref="pdfs"
+    )
 
 
 class Publication(Base):
-    __tablename__ = 'Publication'
+    __tablename__ = "Publication"
 
     ROWID = Column(Integer, primary_key=True)
     abbreviation = Column(Text, index=True)
@@ -325,7 +382,7 @@ class Publication(Base):
     author_string = Column(Text)
     author_year_string = Column(Text)
     body = Column(Text)
-    bundle = Column(ForeignKey('Publication.uuid', ondelete='RESTRICT'))
+    bundle = Column(ForeignKey("Publication.uuid", ondelete="RESTRICT"))
     bundle_string = Column(Text)
     canonical_title = Column(Text)
     citekey = Column(Text, index=True)
@@ -395,11 +452,16 @@ class Publication(Base):
     version = Column(Text, index=True)
     volume = Column(Text, index=True)
 
-    parent = relationship('Publication', remote_side=[ROWID], primaryjoin='Publication.bundle == Publication.uuid', backref='publications')
+    parent = relationship(
+        "Publication",
+        remote_side=[ROWID],
+        primaryjoin="Publication.bundle == Publication.uuid",
+        backref="publications",
+    )
 
 
 class Review(Base):
-    __tablename__ = 'Review'
+    __tablename__ = "Review"
 
     ROWID = Column(Integer, primary_key=True)
     comment = Column(Text)
@@ -409,8 +471,8 @@ class Review(Base):
     extensible_properties = Column(LargeBinary)
     flagged = Column(Integer)
     is_mine = Column(Integer)
-    object_id = Column(ForeignKey('Publication.uuid', ondelete='CASCADE'), index=True)
-    parent = Column(ForeignKey('Review.uuid', ondelete='CASCADE'), index=True)
+    object_id = Column(ForeignKey("Publication.uuid", ondelete="CASCADE"), index=True)
+    parent = Column(ForeignKey("Review.uuid", ondelete="CASCADE"), index=True)
     privacy_level = Column(Integer)
     rating = Column(Integer, index=True)
     score = Column(Integer, index=True)
@@ -420,12 +482,21 @@ class Review(Base):
     updated_at = Column(Float, index=True)
     uuid = Column(Text, nullable=False, unique=True)
 
-    object = relationship('Publication', primaryjoin='Review.object_id == Publication.uuid', backref='reviews')
-    parent1 = relationship('Review', remote_side=[ROWID], primaryjoin='Review.parent == Review.uuid', backref='reviews')
+    object = relationship(
+        "Publication",
+        primaryjoin="Review.object_id == Publication.uuid",
+        backref="reviews",
+    )
+    parent1 = relationship(
+        "Review",
+        remote_side=[ROWID],
+        primaryjoin="Review.parent == Review.uuid",
+        backref="reviews",
+    )
 
 
 class SyncEvent(Base):
-    __tablename__ = 'SyncEvent'
+    __tablename__ = "SyncEvent"
 
     ROWID = Column(Integer, primary_key=True)
     created_at = Column(Float, index=True)
@@ -441,7 +512,7 @@ class SyncEvent(Base):
 
 
 class UsageEvent(Base):
-    __tablename__ = 'UsageEvent'
+    __tablename__ = "UsageEvent"
 
     ROWID = Column(Integer, primary_key=True)
     count = Column(Integer, index=True)
@@ -458,7 +529,7 @@ class UsageEvent(Base):
 
 
 class ChangeLog(Base):
-    __tablename__ = 'changeLog'
+    __tablename__ = "changeLog"
 
     ROWID = Column(Integer, primary_key=True)
     modifiedDate = Column(Float, nullable=False, index=True)
@@ -472,7 +543,7 @@ class ChangeLog(Base):
 
 
 class RevisionLog(Base):
-    __tablename__ = 'revisionLog'
+    __tablename__ = "revisionLog"
 
     ROWID = Column(Integer, primary_key=True, unique=True)
     modifiedDate = Column(Float)

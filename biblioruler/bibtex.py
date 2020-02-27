@@ -3,10 +3,7 @@
 
 # Library to convert CSL-type entries into bibtex entries
 
-TYPES = {
-    "journal article": "article",
-    "proceedings paper": "inproceedings"
-}
+TYPES = {"journal article": "article", "proceedings paper": "inproceedings"}
 
 
 def print_key(entry, key):
@@ -21,7 +18,10 @@ def to_bibtex(entry, crossref, short=True, crossrefs=False):
     print("%% [%s] %s" % (entry["citekey"], entry["type"]))
     print("@%s{%s," % (entryType, entry["citekey"]))
 
-    author_list = " and ".join("%s, %s" % (author["surname"], author["firstname"]) for author in entry.get("authors", []))
+    author_list = " and ".join(
+        "%s, %s" % (author["surname"], author["firstname"])
+        for author in entry.get("authors", [])
+    )
     print("  author = {%s}," % author_list)
 
     print_key(entry, "year")

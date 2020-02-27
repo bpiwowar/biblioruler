@@ -26,9 +26,9 @@ What is imported:
 
 The code has not been updated for a while, so it might or might not work
 
-### Zotero 5 
+### Zotero 5
 
-Basic support (to retrieve papers) 
+Basic support (to retrieve papers)
 
 ## Supported output
 
@@ -37,7 +37,7 @@ Basic support (to retrieve papers)
 
 ### Zotero RDF
 
-Zotero RDF export is functional. I advice you test it by using a test profile in Zotero, to check first if everything is going well, before importing it in your main library. 
+Zotero RDF export is functional. I advice you test it by using a test profile in Zotero, to check first if everything is going well, before importing it in your main library.
 Supported fields:
 
 - title

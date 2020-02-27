@@ -17,36 +17,45 @@ import datetime as dt
 
 DEFAULTS = None
 
+
 def defaults():
     """Get defaults"""
     global DEFAULTS
     if DEFAULTS is not None:
         return DEFAULTS
 
-    DEFAULTS = { "dbpath": None, "filebase": None }
+    DEFAULTS = {"dbpath": None, "filebase": None}
 
     if platform.system() == "Darwin":
         import plistlib
 
-        with open(os.path.expanduser("~/Library/Preferences/com.mendeley.Mendeley Desktop.plist"), "rb") as fh:
+        with open(
+            os.path.expanduser(
+                "~/Library/Preferences/com.mendeley.Mendeley Desktop.plist"
+            ),
+            "rb",
+        ) as fh:
             plist = plistlib.load(fh)
-            DEFAULTS["dbpath"] = op.join(op.expanduser("~/Library/Application Support/Mendeley Desktop/"),
-                plist["MendeleyWeb.userEmail"] + "@www.mendeley.com.sqlite")
+            DEFAULTS["dbpath"] = op.join(
+                op.expanduser("~/Library/Application Support/Mendeley Desktop/"),
+                plist["MendeleyWeb.userEmail"] + "@www.mendeley.com.sqlite",
+            )
             logging.info("Mendeley database path: " + DEFAULTS["dbpath"])
 
     return DEFAULTS
+
 
 @Resource(urn="mendeley:paper")
 class Paper(managers.Paper):
     """A Mendeley paper"""
 
     """Base query to retrieve a publication
-    
+
     When populating paper fields, the fields that begin by __ are not added
     automatically (e.g. __uuid will be processed differently), while the others
     are accessible right away (e.g. issn).
     """
-    BASE_QUERY = """SELECT d.uuid as __uuid, d.type as __type, d.id, d.userType as __userType, 
+    BASE_QUERY = """SELECT d.uuid as __uuid, d.type as __type, d.id, d.userType as __userType,
                 d.publication as __publication, d.note as __note, d.added as __added,
                 d.title, d.issn, d.isbn, d.year, d.month, d.pages, d.pmid, d.doi,
                 d.read, d.favourite, d.abstract, d.institution
@@ -57,19 +66,19 @@ class Paper(managers.Paper):
     FILE_QUERY = """SELECT df.hash, f.localUrl FROM DocumentFiles df, Files f WHERE df.hash=f.hash AND documentId=%d"""
 
     TYPES = {
-        'Book': 'book',
-        'WorkingPaper': 'report',
-        'report': 'report',
-        'ConferenceProceedings': 'paper-conference',
-        'Thesis': 'thesis', # phd or master -> userType
-        'MagazineArticle': 'article-journal',
-        'Patent': 'patent',
-        'WebPage': 'webpage',
-        'Generic': 'entry',
-        'JournalArticle': 'article-journal',
-        'BookSection': 'chapter',
-        'Report': 'report',
-        'Bill': 'bill'
+        "Book": "book",
+        "WorkingPaper": "report",
+        "report": "report",
+        "ConferenceProceedings": "paper-conference",
+        "Thesis": "thesis",  # phd or master -> userType
+        "MagazineArticle": "article-journal",
+        "Patent": "patent",
+        "WebPage": "webpage",
+        "Generic": "entry",
+        "JournalArticle": "article-journal",
+        "BookSection": "chapter",
+        "Report": "report",
+        "Bill": "bill",
     }
 
     def __init__(self, manager, uuid):
@@ -86,7 +95,10 @@ class Paper(managers.Paper):
 
         self.type = Paper.TYPES[row["__type"]]
 
-        if self.type in ["article-journal", "paper-conference"] and row["__publication"]:
+        if (
+            self.type in ["article-journal", "paper-conference"]
+            and row["__publication"]
+        ):
             self.container = Paper(self.manager, "container:%s" % self.local_uuid)
             self.container.init()
             self.container.title = row["__publication"]
@@ -94,7 +106,9 @@ class Paper(managers.Paper):
             self.container.surrogate = False
 
         if row["__note"] is not None:
-            self.notes.append(Note(html=row["__note"], uuid="paper:%d:note" % (self.id)))
+            self.notes.append(
+                Note(html=row["__note"], uuid="paper:%d:note" % (self.id))
+            )
 
         if row["__added"] is not None:
             self.creationdate = dt.datetime.fromtimestamp(row["__added"] / 1000)
@@ -103,7 +117,14 @@ class Paper(managers.Paper):
         try:
             c.execute(Paper.AUTHORS_QUERY % self.id)
             for ix, row in enumerate(c):
-                self.authors.append(Author(firstname=row["firstNames"], surname=row["lastName"], uuid="paper:%d:author:%d" % (self.id, ix), surrogate=False))
+                self.authors.append(
+                    Author(
+                        firstname=row["firstNames"],
+                        surname=row["lastName"],
+                        uuid="paper:%d:author:%d" % (self.id, ix),
+                        surrogate=False,
+                    )
+                )
         finally:
             c.close()
 
@@ -132,7 +153,6 @@ class Paper(managers.Paper):
                 self.files.append(File(self.manager, row["hash"], row["localUrl"]))
         finally:
             c.close()
-            
 
         self.surrogate = False
 
@@ -143,15 +163,16 @@ class Paper(managers.Paper):
         return paper
 
 
-
 def converturl2abspath(url):
     """Convert a url string to an absolute path"""
     pth = unquote(str(urlparse(url).path))
     return os.path.abspath(pth)
 
+
 @Resource(urn="mendeley:file")
 class File(managers.File):
     """A file"""
+
     def __init__(self, manager, uuid, localUrl):
         managers.File.__init__(self, uuid, surrogate=False)
         self.manager = manager
@@ -174,14 +195,16 @@ class File(managers.File):
         annotation = None
         highlightId = None
 
-        ret = self.manager.dbconn.execute(query, { "hash": self.local_uuid })
+        ret = self.manager.dbconn.execute(query, {"hash": self.local_uuid})
         for r in ret:
             page = r["page"] - 1
             bbox = [r["x1"], r["y1"], r["x2"], r["y2"]]
             cdate = dtparser.parse(r["createdTime"])
             uuid = "%s:note:%s" % (self.uuid, r["id"])
-            if annotation is None or annotationId != r["highlightId"]:                   
-                annotation = HighlightAnnotation(uuid, self, page, r["color"], date=cdate)
+            if annotation is None or annotationId != r["highlightId"]:
+                annotation = HighlightAnnotation(
+                    uuid, self, page, r["color"], date=cdate
+                )
                 annotations.append(annotation)
                 annotationId = r["highlightId"]
 
@@ -193,37 +216,41 @@ class File(managers.File):
                 FileNotes.author, FileNotes.note,
                 FileNotes.modifiedTime
             FROM FileNotes
-            WHERE FileNotes.page IS NOT NULL AND fileHash=:hash""" 
-        ret = self.manager.dbconn.execute(query, { "hash": self.local_uuid })
+            WHERE FileNotes.page IS NOT NULL AND fileHash=:hash"""
+        ret = self.manager.dbconn.execute(query, {"hash": self.local_uuid})
 
         for r in ret:
             page = r["page"] - 1
-            bbox = [r["x"], r["y"], r["x"]+30, r["y"]+30]
+            bbox = [r["x"], r["y"], r["x"] + 30, r["y"] + 30]
             author = r["author"]
             txt = r["note"]
             cdate = dtparser.parse(r["modifiedTime"])
             uuid = "%s:note:%s" % (self.uuid, r["id"])
-            NoteAnnotation(uuid, self, page, bbox, r["color"], txt, date=cdate, author=author)
+            NoteAnnotation(
+                uuid, self, page, bbox, r["color"], txt, date=cdate, author=author
+            )
 
         return annotations
+
 
 @Resource(urn="mendeley")
 class Note(managers.Note):
     """An author"""
+
     pass
+
 
 @Resource(urn="mendeley")
 class Author(managers.Author):
     """An author"""
+
     pass
-
-
-
 
 
 @Resource(urn="mendeley")
 class Collection(managers.Collection):
     """A collection"""
+
     BASE_QUERY = """SELECT f.id, f.name, f.parentId FROM Folders f"""
     DOCUMENT_QUERY = """SELECT d.uuid, documentId, folderId FROM DocumentFolders df, Documents d WHERE d.id = df.documentId"""
 
@@ -243,18 +270,19 @@ class Collection(managers.Collection):
         finally:
             c.close()
 
-        
-        if self.parentId < 0: self.parentId = None
-
+        if self.parentId < 0:
+            self.parentId = None
 
     @staticmethod
     def createFromDB(manager, row):
-        collection = Collection(manager, "folder:%s" %  row["id"], row["name"])
+        collection = Collection(manager, "folder:%s" % row["id"], row["name"])
         collection.populate(row)
         return collection
 
+
 class Manager(managers.Manager):
     """Mendeley manager"""
+
     def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["filebase"]):
         """Initialize the manager"""
         managers.Manager.__init__(self, None, surrogate=False)
@@ -275,7 +303,7 @@ class Manager(managers.Manager):
         try:
             collections = {}
             query = Collection.BASE_QUERY
-            query += """, Groups g, RemoteFolders rf 
+            query += """, Groups g, RemoteFolders rf
                 WHERE g.groupType == 'PersonalGroupType' AND rf.folderId = f.id and rf.groupId=g.id"""
             c.execute(query)
             for row in c:
@@ -292,24 +320,32 @@ class Manager(managers.Manager):
     def publications(self):
         c = self.dbconn.cursor()
         try:
-            query = Paper.BASE_QUERY + """, Groups g, RemoteDocuments rd 
+            query = (
+                Paper.BASE_QUERY
+                + """, Groups g, RemoteDocuments rd
                 WHERE g.groupType == 'PersonalGroupType' AND rd.documentId = d.id and rd.groupId=g.id"""
+            )
             c.execute(query)
             for row in c:
                 yield Paper.createFromDB(self, row)
         finally:
             c.close()
 
-
     @staticmethod
     def create(prefix, args):
         """Creates a new manager"""
         parser = argparse.ArgumentParser(add_help=False)
-        parser.add_argument('--%sdbpath' % prefix, dest="dbpath", default=DEFAULTS['dbpath'],
-                            help="The path to the Papers3 sqlite database, "
-                            "defaults to [%s]." % DEFAULTS['dbpath'])
-        parser.add_argument("--%shelp" % prefix, action="help",
-            help="Provides helps about arguments for this manager")
+        parser.add_argument(
+            "--%sdbpath" % prefix,
+            dest="dbpath",
+            default=DEFAULTS["dbpath"],
+            help="The path to the Papers3 sqlite database, "
+            "defaults to [%s]." % DEFAULTS["dbpath"],
+        )
+        parser.add_argument(
+            "--%shelp" % prefix,
+            action="help",
+            help="Provides helps about arguments for this manager",
+        )
         args, remaining_args = parser.parse_known_args(args)
         return Manager(args.dbpath), remaining_args
-

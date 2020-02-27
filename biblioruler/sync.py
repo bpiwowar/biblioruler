@@ -2,9 +2,11 @@
 
 import logging
 
+
 def getClass(name):
     source = __import__("manager_%s" % name)
     return source.__dict__[name[0].upper() + name[1:]]
+
 
 def execute(args):
     source = getClass(args.source)()

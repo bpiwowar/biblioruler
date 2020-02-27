@@ -31,13 +31,14 @@ import re
 
 DEFAULTS = None
 
+
 def defaults():
     """Get defaults"""
     global DEFAULTS
     if DEFAULTS is not None:
         return DEFAULTS
 
-    DEFAULTS = { }
+    DEFAULTS = {}
 
     system = platform.system()
     if system == "Darwin":
@@ -46,14 +47,13 @@ def defaults():
         mainpath = os.path.expanduser("~/.zotero/zotero")
     else:
         raise Exception("No zotero path defined for %s" % platform.system())
-        
 
     inipath = os.path.join(mainpath, "profiles.ini")
     logging.info("Reading %s", inipath)
     config = configparser.ConfigParser()
     config.read(inipath)
 
-    for k, v in config.items(): 
+    for k, v in config.items():
         if k.startswith("Profile"):
             if v.get("Default", 0) == "1":
                 profilepath = os.path.join(mainpath, v["Path"])
@@ -79,26 +79,32 @@ def defaults():
     return DEFAULTS
 
 
-# --- Resources 
+# --- Resources
+
 
 @Resource(urn="zotero:note")
 class Note(managers.Note):
     """A note"""
+
     def __init__(self, note: dbz.ItemNote):
         super().__init__(self, note.itemID, title=note.title, html=note.note)
-    
-    
+
 
 @Resource(urn="zotero:paper")
 class Paper(managers.Paper):
     """A zotero paper"""
+
     def __init__(self, manager, uuid):
         managers.Paper.__init__(self, uuid)
         self.manager = manager
 
     def _retrieve(self):
         try:
-            self.populate(self.manager.session.query(dbz.Item).filter(dbz.Item.key == self.local_uuid).one())
+            self.populate(
+                self.manager.session.query(dbz.Item)
+                .filter(dbz.Item.key == self.local_uuid)
+                .one()
+            )
         except:
             logging.exception("Could not retrieve item %s", self.local_uuid)
             raise
@@ -113,18 +119,27 @@ class Paper(managers.Paper):
 
         self.surrogate = False
 
+
 @Resource(urn="zotero")
 class Author(managers.Author):
     """An author"""
+
     pass
+
 
 class Manager(managers.Manager):
     def connect(self):
         # Read only connect
-        return sqlite3.connect('file:%s?mode=ro' % self.ro_dbpath , uri=True)
+        return sqlite3.connect("file:%s?mode=ro" % self.ro_dbpath, uri=True)
 
     """zotero manager"""
-    def __init__(self, dbpath=defaults()["dbpath"], filebase=defaults()["baseAttachmentPath"], copy=True):
+
+    def __init__(
+        self,
+        dbpath=defaults()["dbpath"],
+        filebase=defaults()["baseAttachmentPath"],
+        copy=True,
+    ):
         """Initialize the manager"""
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = Path(dbpath)
@@ -132,20 +147,22 @@ class Manager(managers.Manager):
 
         if copy:
             import shutil
+
             self.ro_dbpath = self.dbpath.with_suffix(".ro.sql")
             shutil.copyfile(dbpath, self.ro_dbpath)
-        
-        self.engine = create_engine(u'sqlite://', creator=self.connect, connect_args={'readonly': True})
+
+        self.engine = create_engine(
+            u"sqlite://", creator=self.connect, connect_args={"readonly": True}
+        )
         # options={ "mode": "ro"})
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
 
-
         logging.info("Connected to Zotero SQL database")
-        
+
         self.fields = {}
         for row in self.session.query(dbz.FieldsCombined):
-            self.fields[row.fieldName] =  row.fieldID
+            self.fields[row.fieldName] = row.fieldID
 
     def collections(self):
         return None
@@ -165,21 +182,27 @@ class Manager(managers.Manager):
         else:
             uriref = m.group(1)
             logging.debug("Searching for Zotero publication with UUID %s", uriref)
-            item = self.session.query(dbz.Item)\
-                .outerjoin(dbz.DeletedItem)\
-                .filter(dbz.DeletedItem.itemID == None)\
-                .filter(dbz.Item.key == uriref)\
+            item = (
+                self.session.query(dbz.Item)
+                .outerjoin(dbz.DeletedItem)
+                .filter(dbz.DeletedItem.itemID == None)
+                .filter(dbz.Item.key == uriref)
                 .one()
+            )
 
             return Paper(self, item.key)
 
     def find_by(self, key, value):
-        query = self.session.query(dbz.ItemData, dbz.Item)\
-            .join(dbz.FieldsCombined).join(dbz.ItemDataValue).join(dbz.Item)\
-            .outerjoin(dbz.DeletedItem)\
-            .filter(dbz.DeletedItem.itemID == None)\
-            .filter(dbz.ItemData.fieldID == self.fields[key])\
+        query = (
+            self.session.query(dbz.ItemData, dbz.Item)
+            .join(dbz.FieldsCombined)
+            .join(dbz.ItemDataValue)
+            .join(dbz.Item)
+            .outerjoin(dbz.DeletedItem)
+            .filter(dbz.DeletedItem.itemID == None)
+            .filter(dbz.ItemData.fieldID == self.fields[key])
             .filter(dbz.ItemDataValue.value.like(value))
+        )
 
         logging.debug("Retrieving Zotero paper by %s == [%s]: %s", key, value, query)
         papers = []
@@ -198,8 +221,10 @@ class Manager(managers.Manager):
     def create(prefix, args):
         """Creates a new manager"""
         parser = argparse.ArgumentParser(add_help=False)
-        parser.add_argument("--%shelp" % prefix, action="help",
-            help="Provides helps about arguments for this manager")
+        parser.add_argument(
+            "--%shelp" % prefix,
+            action="help",
+            help="Provides helps about arguments for this manager",
+        )
         args, remaining_args = parser.parse_known_args(args)
         return Manager(args.dbpath), remaining_args
-

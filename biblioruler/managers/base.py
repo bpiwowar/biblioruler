@@ -8,12 +8,48 @@ import os
 from bs4 import BeautifulSoup
 
 """All the types that can be taken by a paper"""
-types = set(["article", "article-journal", "article-magazine", "article-newspaper",
-    "bill", "book", "broadcast", "chapter", "dataset", "entry", "entry-dictionary",
-    "entry-encyclopedia", "figure", "graphic", "interview", "journal", "legal_case", "legislation",
-    "manuscript", "map", "motion_picture", "musical_score", "pamphlet", "paper-conference", "proceedings", "patent",
-    "personal_communication", "post", "post-weblog", "report", "review", "review-book", "song", "speech",
-    "thesis", "treaty", "webpage"])
+types = set(
+    [
+        "article",
+        "article-journal",
+        "article-magazine",
+        "article-newspaper",
+        "bill",
+        "book",
+        "broadcast",
+        "chapter",
+        "dataset",
+        "entry",
+        "entry-dictionary",
+        "entry-encyclopedia",
+        "figure",
+        "graphic",
+        "interview",
+        "journal",
+        "legal_case",
+        "legislation",
+        "manuscript",
+        "map",
+        "motion_picture",
+        "musical_score",
+        "pamphlet",
+        "paper-conference",
+        "proceedings",
+        "patent",
+        "personal_communication",
+        "post",
+        "post-weblog",
+        "report",
+        "review",
+        "review-book",
+        "song",
+        "speech",
+        "thesis",
+        "treaty",
+        "webpage",
+    ]
+)
+
 
 class Resource:
     def __init__(self, urn):
@@ -23,7 +59,7 @@ class Resource:
         @classmethod
         def urn(cls):
             return self.urn
-        
+
         clazz.urn = urn
         return clazz
 
@@ -37,13 +73,15 @@ class Object:
         """Used to extract results from a sqlite3 row by name"""
         for idx, col in enumerate(cursor.description):
             name = col[0]
-            if (exclude is None or name not in exclude) and (include is None or name not in include):
+            if (exclude is None or name not in exclude) and (
+                include is None or name not in include
+            ):
                 dest = transform.get(name, name)
                 setattr(self, dest, row[name])
 
     def __getattr__(self, name):
         # Retrieve the surrogate if need be
-        if name == "surrogate": 
+        if name == "surrogate":
             return False
 
         if self.surrogate:
@@ -65,36 +103,37 @@ class Object:
     def urn(cls):
         return None
 
+
 class Note(Object):
     def __init__(self, uuid, text=None, html=None, title=None, surrogate=True):
         Object.__init__(self, uuid, surrogate=surrogate)
         self._text = text
         self._html = html
         self.title = title
-    
+
     @property
     def html(self):
         return self._html
-    
+
     @property
     def text(self):
         if self._text is None and self._html:
             self._text = BeautifulSoup(self._html).get_text()
         return self._text
-    
+
 
 class Paper(Object):
     """A paper
-    
+
     The following fields are present:
     - authors : a list of authors
     - files : the attached files
     - keywords : the set of keywords
     """
+
     def __init__(self, uuid, surrogate=True):
         super().__init__(uuid, surrogate)
         self.local_uuid = uuid
-
 
     def init(self):
         """Initialize properly the fields"""
@@ -134,9 +173,9 @@ class Paper(Object):
         return s.strip()
 
 
-
 class File(Object):
     """A file (PDF, etc) associated to a document"""
+
     def __init__(self, uuid: str, surrogate=True):
         """Initialize the File object
 
@@ -151,9 +190,9 @@ class File(Object):
     def has_externalannotations(self):
         """Returns False if the file has embedded annotations or has no annotations, True otherwise"""
         return self.annotations
-    
+
     def exists(self):
-        if not op.isfile(self.path): 
+        if not op.isfile(self.path):
             return False
         s = os.stat(self.path)
         return s.st_size > 0
@@ -167,7 +206,7 @@ class File(Object):
     def embed_annotations(self, path):
         import PyPDF2
 
-        inpdf = PyPDF2.PdfFileReader(self.path, 'rb')
+        inpdf = PyPDF2.PdfFileReader(self.path, "rb")
         if inpdf.isEncrypted:
             # PyPDF2 seems to think some files are encrypted even
             # if they are not. We just ignore the encryption.
@@ -191,6 +230,7 @@ class File(Object):
 
 class Annotation(Object):
     """An annotation on a file"""
+
     def __init__(self, uuid, file, page, *, surrogate=True, author=None, date=None):
         super().__init__(uuid, surrogate)
         self.file = file
@@ -198,10 +238,21 @@ class Annotation(Object):
         self.date = date
         self.page = page
 
+
 class HighlightAnnotation(Annotation):
-    def __init__(self, uuid: str, file: File, page: int, color, 
-        date=None, author=None, surrogate=True):
-        super().__init__(uuid, file, page, surrogate=surrogate, date=date, author=author)
+    def __init__(
+        self,
+        uuid: str,
+        file: File,
+        page: int,
+        color,
+        date=None,
+        author=None,
+        surrogate=True,
+    ):
+        super().__init__(
+            uuid, file, page, surrogate=surrogate, date=date, author=author
+        )
         self.bboxes = []
         self.color = color
 
@@ -210,34 +261,57 @@ class HighlightAnnotation(Annotation):
 
     def annotate(self, outpdf, pages):
         import biblioruler.pdf.pdfannotation as pdfannotation
+
         if len(pages) > self.page:
             annot = pdfannotation.highlight_annotation(self.bboxes, cdate=self.date)
             pdfannotation.add_annotation(outpdf, pages[self.page], annot)
         else:
-            logging.warn("Annotated page %d greater than number of pages %d", self.page+1, len(pages))
+            logging.warn(
+                "Annotated page %d greater than number of pages %d",
+                self.page + 1,
+                len(pages),
+            )
+
 
 class NoteAnnotation(Annotation):
-    def __init__(self, uuid: str, file: File, page: int, bbox, color, text, 
-        surrogate=True, author=None, date=None):
-        super().__init__(uuid, file, page, surrogate=surrogate, author=author, date=date)
+    def __init__(
+        self,
+        uuid: str,
+        file: File,
+        page: int,
+        bbox,
+        color,
+        text,
+        surrogate=True,
+        author=None,
+        date=None,
+    ):
+        super().__init__(
+            uuid, file, page, surrogate=surrogate, author=author, date=date
+        )
         self.bbox = bbox
         self.text = text
         self.color = color
 
     def annotate(self, outpdf, pages):
         import biblioruler.pdf.pdfannotation as pdfannotation
-        note = pdfannotation.text_annotation(self.bbox, contents=self.text, author=self.author,
-                                                cdate=self.date)
+
+        note = pdfannotation.text_annotation(
+            self.bbox, contents=self.text, author=self.author, cdate=self.date
+        )
         if len(pages) > self.page:
             pdfannotation.add_annotation(outpdf, pages[self.page], note)
         else:
-            logging.warn("Annotated page %d greater than number of pages %d", self.page+1, len(pages))
-
-
+            logging.warn(
+                "Annotated page %d greater than number of pages %d",
+                self.page + 1,
+                len(pages),
+            )
 
 
 class Author(Object):
     """The author of a paper"""
+
     def __init__(self, uuid, firstname=None, surname=None, surrogate=True):
         super().__init__(uuid, surrogate)
         self.firstname = firstname
@@ -246,6 +320,7 @@ class Author(Object):
 
 class Keyword(Object):
     """A keyword"""
+
     def __init__(self, uuid, name):
         self.parent = None
         self.local_uuid = uuid
@@ -254,13 +329,14 @@ class Keyword(Object):
 
 class Collection(Object):
     """A collection of publications"""
+
     def __init__(self, uuid, name):
         self._parent = None
         self.children = []
         self.publications = []
         self.local_uuid = uuid
         self.name = name
-    
+
     @property
     def parent(self):
         return self._parent
@@ -278,4 +354,5 @@ class Collection(Object):
 
 class Manager(Object):
     """A bibliographic manager"""
+
     pass

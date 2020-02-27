@@ -15,13 +15,18 @@ from dateutil import parser as dtparser
 global OVERWRITE_PDFS
 OVERWRITE_PDFS = False
 
+
 def convert2datetime(s):
     return dtparser.parse(s)
 
+
 def converturl2abspath(url):
     """Convert a url string to an absolute path"""
-    pth = unquote(str(urlparse(url).path)).decode("utf8") #this is necessary for filenames with unicode strings
+    pth = unquote(str(urlparse(url).path)).decode(
+        "utf8"
+    )  # this is necessary for filenames with unicode strings
     return os.path.abspath(pth)
+
 
 def get_highlights_from_db(db, results={}):
     """Extract the locations of highlights from the Mendeley database
@@ -58,15 +63,16 @@ def get_highlights_from_db(db, results={}):
         hlight = {"rect": bbox, "cdate": cdate}
         if pth in results:
             if pg in results[pth]:
-                if 'highlights' in results[pth][pg]:
-                    results[pth][pg]['highlights'].append(hlight)
+                if "highlights" in results[pth][pg]:
+                    results[pth][pg]["highlights"].append(hlight)
                 else:
-                    results[pth][pg]['highlights'] = [hlight]
+                    results[pth][pg]["highlights"] = [hlight]
             else:
-                results[pth][pg] = {'highlights': [hlight]}
+                results[pth][pg] = {"highlights": [hlight]}
         else:
-            results[pth] = {pg: {'highlights':[hlight]}}
+            results[pth] = {pg: {"highlights": [hlight]}}
     return results
+
 
 def get_notes_from_db(db, results={}):
     """Extract notes from the Mendeley database
@@ -96,41 +102,54 @@ def get_notes_from_db(db, results={}):
     for r in ret:
         pth = converturl2abspath(r[0])
         pg = r[1]
-        bbox = [r[2], r[3], r[2]+30, r[3]+30] # needs a rectangle however size does not matter
+        bbox = [
+            r[2],
+            r[3],
+            r[2] + 30,
+            r[3] + 30,
+        ]  # needs a rectangle however size does not matter
         author = r[4]
         txt = r[5]
         cdate = convert2datetime(r[6])
-        note = {"rect": bbox, "author": author, "content": txt, "cdate":cdate}
+        note = {"rect": bbox, "author": author, "content": txt, "cdate": cdate}
         if pth in results:
             if pg in results[pth]:
-                if 'notes' in results[pth][pg]:
-                    results[pth][pg]['notes'].append(note)
+                if "notes" in results[pth][pg]:
+                    results[pth][pg]["notes"].append(note)
                 else:
-                    results[pth][pg]['notes'] = [note]
+                    results[pth][pg]["notes"] = [note]
             else:
-                results[pth][pg] = {'notes': [note]}
+                results[pth][pg] = {"notes": [note]}
         else:
-            results[pth] = {pg: {'notes':[note]}}
+            results[pth] = {pg: {"notes": [note]}}
     return results
+
 
 def add_annotation2pdf(inpdf, outpdf, annotations):
     for pg in list(annotations.keys()):
-        inpg = inpdf.getPage(pg-1)
-        if 'highlights' in annotations[pg]:
-            for hn in annotations[pg]['highlights']:
-                annot = pdfannotation.highlight_annotation(hn["rect"], cdate=hn["cdate"])
+        inpg = inpdf.getPage(pg - 1)
+        if "highlights" in annotations[pg]:
+            for hn in annotations[pg]["highlights"]:
+                annot = pdfannotation.highlight_annotation(
+                    hn["rect"], cdate=hn["cdate"]
+                )
                 pdfannotation.add_annotation(outpdf, inpg, annot)
-        if 'notes' in annotations[pg]:
-            for nt in annotations[pg]['notes']:
-                note = pdfannotation.text_annotation(nt["rect"], contents=nt["content"], author=nt["author"],
-                                                     cdate=nt["cdate"])
+        if "notes" in annotations[pg]:
+            for nt in annotations[pg]["notes"]:
+                note = pdfannotation.text_annotation(
+                    nt["rect"],
+                    contents=nt["content"],
+                    author=nt["author"],
+                    cdate=nt["cdate"],
+                )
                 pdfannotation.add_annotation(outpdf, inpg, note)
         outpdf.addPage(inpg)
     return outpdf
 
+
 def processpdf(fn, fn_out, annotations):
     try:
-        inpdf = PyPDF2.PdfFileReader(open(fn, 'rb'))
+        inpdf = PyPDF2.PdfFileReader(open(fn, "rb"))
         if inpdf.isEncrypted:
             # PyPDF2 seems to think some files are encrypted even
             # if they are not. We just ignore the encryption.
@@ -138,19 +157,20 @@ def processpdf(fn, fn_out, annotations):
             inpdf._override_encryption = True
             inpdf._flatten()
     except IOError:
-        print("Could not find pdffile %s"%fn)
+        print("Could not find pdffile %s" % fn)
         return
     outpdf = PyPDF2.PdfFileWriter()
     outpdf = add_annotation2pdf(inpdf, outpdf, annotations)
     if os.path.isfile(fn_out):
         if not OVERWRITE_PDFS:
-            print("%s exists skipping"%fn_out)
+            print("%s exists skipping" % fn_out)
             return
         else:
-            print("overwriting %s"%fn_out)
+            print("overwriting %s" % fn_out)
     else:
-        print("writing pdf to %s"%fn_out)
+        print("writing pdf to %s" % fn_out)
     outpdf.write(open(fn_out, "wb"))
+
 
 def mendeley2pdf(fn_db, dir_pdf):
     db = sqlite3.connect(fn_db)
@@ -159,25 +179,30 @@ def mendeley2pdf(fn_db, dir_pdf):
     for fn, annons in annotations_all.items():
         processpdf(fn, os.path.join(dir_pdf, os.path.basename(fn)), annons)
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("mendeleydb", help="The mendeley sqlite database file",
-                        type=str)
-    parser.add_argument("dest", help="""The destination directory where to
-                        save the annotated pdfs""", type=str)
-    parser.add_argument("-w", "--overwrite", help="""Overwrite any PDF files in
-                        the destination directory""", action="store_true")
+    parser.add_argument(
+        "mendeleydb", help="The mendeley sqlite database file", type=str
+    )
+    parser.add_argument(
+        "dest",
+        help="""The destination directory where to
+                        save the annotated pdfs""",
+        type=str,
+    )
+    parser.add_argument(
+        "-w",
+        "--overwrite",
+        help="""Overwrite any PDF files in
+                        the destination directory""",
+        action="store_true",
+    )
     args = parser.parse_args()
     fn = os.path.abspath(args.mendeleydb)
     dir_pdf = os.path.abspath(args.dest)
     if args.overwrite:
         OVERWRITE_PDFS = True
     mendeley2pdf(fn, dir_pdf)
-
-
-
-
-
-
-
