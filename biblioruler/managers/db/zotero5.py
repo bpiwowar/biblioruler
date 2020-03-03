@@ -420,7 +420,7 @@ class ItemCreator(Base):
         backref="item_creators",
     )
     item = relationship(
-        "Item", primaryjoin="ItemCreator.itemID == Item.itemID", backref="item_creators"
+        "Item", primaryjoin="ItemCreator.itemID == Item.itemID", backref="creators"
     )
 
 

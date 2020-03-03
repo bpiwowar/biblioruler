@@ -87,7 +87,20 @@ class Note(managers.Note):
     """A note"""
 
     def __init__(self, note: dbz.ItemNote):
-        super().__init__(self, note.itemID, title=note.title, html=note.note)
+        super().__init__(note.itemID, title=note.title, html=note.note)
+
+
+@Resource(urn="zotero")
+class Author(managers.Author):
+    """An author"""
+
+    def __init__(self, author: dbz.ItemCreator):
+        super().__init__(
+            author.creatorID,
+            firstname=author.creator.firstName,
+            surname=author.creator.lastName,
+            surrogate=False,
+        )
 
 
 @Resource(urn="zotero:paper")
@@ -116,15 +129,9 @@ class Paper(managers.Paper):
         self.uri = "zotero://select/items/1_%s" % self.local_uuid
 
         self.notes = [Note(note) for note in item.notes]
+        self.authors = [Author(author) for author in item.creators]
 
         self.surrogate = False
-
-
-@Resource(urn="zotero")
-class Author(managers.Author):
-    """An author"""
-
-    pass
 
 
 class Manager(managers.Manager):

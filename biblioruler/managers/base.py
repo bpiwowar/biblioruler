@@ -317,6 +317,10 @@ class Author(Object):
         self.firstname = firstname
         self.surname = surname
 
+    @property
+    def lastname(self):
+        return self.surname
+
 
 class Keyword(Object):
     """A keyword"""
