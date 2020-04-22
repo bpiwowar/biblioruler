@@ -4,3 +4,4 @@ biblioruler.egg-info
 .eggs
 build
 dist/
+.mypy_cache
