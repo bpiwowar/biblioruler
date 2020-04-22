@@ -334,10 +334,11 @@ class Keyword(Object):
 class Collection(Object):
     """A collection of publications"""
 
-    def __init__(self, uuid, name):
+    def __init__(self, uuid, name, surrogate=False):
+        super().__init__(uuid, surrogate)
         self._parent = None
-        self.children = []
-        self.publications = []
+        # self.children = None
+        # self.publications = []
         self.local_uuid = uuid
         self.name = name
 

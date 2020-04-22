@@ -1,6 +1,7 @@
 # zotero SQL backend
 
 from pathlib import Path
+import shutil
 
 import biblioruler.managers.base as managers
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -10,7 +11,7 @@ from dateutil import parser as dtparser
 from urllib.parse import unquote
 from urllib.parse import urlparse
 
-from .base import Resource, Note, HighlightAnnotation, NoteAnnotation
+from .base import Resource, HighlightAnnotation, NoteAnnotation
 from biblioruler.sqlite3utils import dict_factory
 import argparse
 import sqlite3
@@ -90,6 +91,25 @@ class Note(managers.Note):
         super().__init__(note.itemID, title=note.title, html=note.note)
 
 
+@Resource(urn="zotero:collection")
+class Collection(managers.Collection):
+    """A collection"""
+    def __init__(self, manager, collection: dbz.Collection):
+        super().__init__(collection.collectionID, collection.collectionName, surrogate=True)
+        self.manager = manager
+
+    def _retrieve(self):
+        query = (
+            self.manager.session.query(dbz.CollectionItem)
+            .filter(dbz.CollectionItem.collectionID == self.local_uuid)
+            .join(dbz.Item)
+            # .order_by(dbz.CollectionItem.orderIndex)
+        )
+
+        self.publications = []
+        for collectionItem in query.all():
+            self.publications.append(Paper(self.manager, collectionItem.item.key))
+
 @Resource(urn="zotero")
 class Author(managers.Author):
     """An author"""
@@ -151,28 +171,44 @@ class Manager(managers.Manager):
         managers.Manager.__init__(self, None, surrogate=False)
         self.dbpath = Path(dbpath)
         self.ro_dbpath = self.dbpath
-
-        if copy:
-            import shutil
-
-            self.ro_dbpath = self.dbpath.with_suffix(".ro.sql")
-            shutil.copyfile(dbpath, self.ro_dbpath)
-
-        self.engine = create_engine(
-            u"sqlite://", creator=self.connect, connect_args={"readonly": True}
-        )
-        # options={ "mode": "ro"})
-        self.session = scoped_session(sessionmaker(bind=self.engine))
         self.filebase = filebase
 
-        logging.info("Connected to Zotero SQL database")
+        if copy:
+            self.ro_dbpath = self.dbpath.with_suffix(".ro.sql")
 
-        self.fields = {}
-        for row in self.session.query(dbz.FieldsCombined):
-            self.fields[row.fieldName] = row.fieldID
+        self.engine = None
+        self.refresh()
+
+    def refresh(self):
+        """Copy again the database if read-only and outdated"""
+        if self.ro_dbpath:
+            if not self.ro_dbpath.is_file() or self.ro_dbpath.stat().st_mtime < self.dbpath.stat().st_mtime:
+                shutil.copyfile(self.dbpath, self.ro_dbpath)
+                self.engine = None
+
+        if not self.engine:
+            self.engine = create_engine(
+                u"sqlite://", creator=self.connect, connect_args={"readonly": True}
+            )
+            # options={ "mode": "ro"})
+            self.session = scoped_session(sessionmaker(bind=self.engine))
+
+            logging.info("Connected to Zotero SQL database")
+
+            self.fields = {}
+            for row in self.session.query(dbz.FieldsCombined):
+                self.fields[row.fieldName] = row.fieldID
 
     def collections(self):
         return None
+
+    def get_collection_by_key(self, key):
+        collection = (
+            self.session.query(dbz.Collection)
+            .filter(dbz.Collection.key == key)
+            .one()
+        )
+        return Collection(self, collection)
 
     def get_item_by_key(self, key):
         return Paper(self, key)
