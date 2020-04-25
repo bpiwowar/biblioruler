@@ -142,8 +142,11 @@ class Paper(Object):
         self.keywords = set()
         self.notes = []
         self.container = None
+        
+        self.day = None
         self.month = None
         self.year = None
+
         self.read = False
         self.uri = None
         self.doi = None
@@ -163,6 +166,10 @@ class Paper(Object):
         except AttributeError as e:
             logging.error("Cannot set attribute %s on %s" % (name, type(self)))
             raise
+
+    def isodate(self):
+        """Returns an isodate (using 0 if None)"""
+        return f"{self.year or 0:04}-{self.month or 0:02}-{self.day or 0:02}"
 
     def date(self):
         s = ""

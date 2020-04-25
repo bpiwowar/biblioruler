@@ -110,6 +110,8 @@ class Collection(managers.Collection):
         for collectionItem in query.all():
             self.publications.append(Paper(self.manager, collectionItem.item.key))
 
+        self.surrogate = False
+
 @Resource(urn="zotero")
 class Author(managers.Author):
     """An author"""
@@ -142,7 +144,7 @@ class Paper(managers.Paper):
             logging.exception("Could not retrieve item %s", self.local_uuid)
             raise
 
-    def populate(self, item):
+    def populate(self, item: dbz.Item):
         self.init()
         values = {data.field.fieldName: data.value.value for data in item.data}
         self.title = values.get("title", None)
@@ -150,6 +152,17 @@ class Paper(managers.Paper):
 
         self.notes = [Note(note) for note in item.notes]
         self.authors = [Author(author) for author in item.creators]
+        self.tags = [tag.tag.name for tag in item.tags]
+                
+        # Retrieve the date
+        date = values.get('date', None)
+        if date:
+            m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", date)
+            if m:
+                self.year  = int(m.group(1))
+                self.month = int(m.group(2))
+                self.day   = int(m.group(3))
+        self.creationdate = item.dateAdded
 
         self.surrogate = False
 

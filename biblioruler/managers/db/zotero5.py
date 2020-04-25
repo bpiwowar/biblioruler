@@ -502,7 +502,7 @@ class ItemTag(Base):
     type = Column(Integer, nullable=False)
 
     item = relationship(
-        "Item", primaryjoin="ItemTag.itemID == Item.itemID", backref="item_tags"
+        "Item", primaryjoin="ItemTag.itemID == Item.itemID", backref="tags"
     )
     tag = relationship(
         "Tag", primaryjoin="ItemTag.tagID == Tag.tagID", backref="item_tags"
