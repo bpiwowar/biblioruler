@@ -94,8 +94,11 @@ class Note(managers.Note):
 @Resource(urn="zotero:collection")
 class Collection(managers.Collection):
     """A collection"""
+
     def __init__(self, manager, collection: dbz.Collection):
-        super().__init__(collection.collectionID, collection.collectionName, surrogate=True)
+        super().__init__(
+            collection.collectionID, collection.collectionName, surrogate=True
+        )
         self.manager = manager
 
     def _retrieve(self):
@@ -111,6 +114,7 @@ class Collection(managers.Collection):
             self.publications.append(Paper(self.manager, collectionItem.item.key))
 
         self.surrogate = False
+
 
 @Resource(urn="zotero")
 class Author(managers.Author):
@@ -152,16 +156,16 @@ class Paper(managers.Paper):
 
         self.notes = [Note(note) for note in item.notes]
         self.authors = [Author(author) for author in item.creators]
-        self.tags = [tag.tag.name for tag in item.tags]
-                
+        self.tags = set(tag.tag.name for tag in item.tags)
+
         # Retrieve the date
-        date = values.get('date', None)
+        date = values.get("date", None)
         if date:
             m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", date)
             if m:
-                self.year  = int(m.group(1))
+                self.year = int(m.group(1))
                 self.month = int(m.group(2))
-                self.day   = int(m.group(3))
+                self.day = int(m.group(3))
         self.creationdate = item.dateAdded
 
         self.surrogate = False
@@ -195,7 +199,10 @@ class Manager(managers.Manager):
     def refresh(self):
         """Copy again the database if read-only and outdated"""
         if self.ro_dbpath:
-            if not self.ro_dbpath.is_file() or self.ro_dbpath.stat().st_mtime < self.dbpath.stat().st_mtime:
+            if (
+                not self.ro_dbpath.is_file()
+                or self.ro_dbpath.stat().st_mtime < self.dbpath.stat().st_mtime
+            ):
                 shutil.copyfile(self.dbpath, self.ro_dbpath)
                 self.engine = None
 
@@ -217,9 +224,7 @@ class Manager(managers.Manager):
 
     def get_collection_by_key(self, key):
         collection = (
-            self.session.query(dbz.Collection)
-            .filter(dbz.Collection.key == key)
-            .one()
+            self.session.query(dbz.Collection).filter(dbz.Collection.key == key).one()
         )
         return Collection(self, collection)
 
