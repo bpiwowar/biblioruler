@@ -20,6 +20,7 @@ import os.path as op
 import logging
 import platform
 import datetime as dt
+import subprocess
 
 from sqlalchemy import create_engine
 import biblioruler.managers.db.zotero5 as dbz
@@ -42,10 +43,22 @@ def defaults():
     DEFAULTS = {}
 
     system = platform.system()
+    pathtransform = lambda x: x
+
     if system == "Darwin":
         mainpath = os.path.expanduser("~/Library/Application Support/Zotero")
     elif system == "Linux":
-        mainpath = os.path.expanduser("~/.zotero/zotero")
+        if "microsoft" in platform.uname().release:
+            from pathlib import PureWindowsPath
+
+            def pathtransform(path):
+                p = PureWindowsPath(path)
+                r= Path("/mnt") / p.drive[:-1].lower() /  Path(*p.parts[1:])
+                return r
+            path=subprocess.check_output('cmd.exe /c "echo %USERPROFILE%"', shell=True, stderr=subprocess.DEVNULL).strip().decode("utf-8")
+            mainpath= pathtransform(path) / "AppData/Roaming/Zotero/Zotero"
+        else:
+            mainpath = os.path.expanduser("~/.zotero/zotero")
     else:
         raise Exception("No zotero path defined for %s" % platform.system())
 
@@ -54,11 +67,14 @@ def defaults():
     config = configparser.ConfigParser()
     config.read(inipath)
 
+    profilepath = None
     for k, v in config.items():
         if k.startswith("Profile"):
             if v.get("Default", 0) == "1":
-                profilepath = os.path.join(mainpath, v["Path"])
+                profilepath = mainpath / v["Path"]
                 break
+
+    assert profilepath is not None, f"Could not find the default profile in {mainpath}/profiles.ini"
 
     # Read preferences
     prefs = os.path.join(profilepath, "prefs.js")
@@ -70,7 +86,7 @@ def defaults():
                 if m.group(1) == "extensions.zotero.baseAttachmentPath":
                     DEFAULTS["baseAttachmentPath"] = m.group(2)
                 elif m.group(1) == "extensions.zotero.dataDir":
-                    DEFAULTS["dataDir"] = m.group(2)
+                    DEFAULTS["dataDir"] = str(pathtransform(m.group(2)))
 
     if "baseAttachmentPath" not in DEFAULTS:
         DEFAULTS["baseAttachmentPath"] = os.path.join(DEFAULTS["dataDir"], "storage")
