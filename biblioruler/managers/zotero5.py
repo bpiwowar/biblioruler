@@ -45,12 +45,12 @@ def defaults():
     system = platform.system()
     pathtransform = lambda x: x
 
+
     if system == "Darwin":
         mainpath = os.path.expanduser("~/Library/Application Support/Zotero")
     elif system == "Linux":
         if "microsoft" in platform.uname().release:
             from pathlib import PureWindowsPath
-
             def pathtransform(path):
                 p = PureWindowsPath(path)
                 r= Path("/mnt") / p.drive[:-1].lower() /  Path(*p.parts[1:])
@@ -214,6 +214,8 @@ class Manager(managers.Manager):
 
     def refresh(self):
         """Copy again the database if read-only and outdated"""
+        print("Copy to", self.ro_dbpath)
+
         if self.ro_dbpath:
             if (
                 not self.ro_dbpath.is_file()
